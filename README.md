@@ -31,7 +31,7 @@ sind die Daten dort nicht vorhanden – dann die letzte JSON-Sicherung importier
 
 ## Funktionen
 
-- Übersicht: **Monatsplan** mit einer Zeile pro Person und einer Spalte pro Tag, Kalenderwochen als Trenner, Kürzel farbig nach Art: A = Abzählen, F = Fahren (Tour steht klein darunter), A/F = beides, X = Frei, K = Krank, Fe = Ferien, An = Andere. Kürzel in den Einstellungen änderbar. Rechts die Anzahl Tage und Stunden, unten offene Plätze. Monatsnavigation, Druck als PDF (Querformat) und farbiger Excel-Export.
+- Übersicht: **Monatsplan** mit einer Zeile pro Person und einer Spalte pro Tag, Kalenderwochen als Trenner, Kürzel farbig nach Art: A = Abzählen (schliesst Fahren ein), F = Fahren (Tour steht klein darunter), X = Frei, K = Krank, Fe = Ferien, An = Andere. Kürzel in den Einstellungen änderbar. Rechts die Anzahl Tage und Stunden, unten offene Plätze. Monatsnavigation, Druck als PDF (Querformat) und farbiger Excel-Export.
 - Excel-Export (Wochenplan und Monatsplan) mit Farben nach Art, grauen Kopfzeilen, Rahmen, fixierter Kopfzeile und Namensspalte.
 - Wochenplan Mo–So mit Kalenderwoche und zwei Zeilen pro Tag: **Abzählen** (Plätze pro Wochentag einstellbar, mit «+ Platz» erweiterbar) und **Fahren** (mit «+ Fahren» eine Person eintragen, dazu die Tour wählen, damit sie sieht, welche Tour sie fährt; Ende wird nachträglich eingetragen, vorher gilt das ungefähre Ende der Tour). Im Auswahlfeld eines Abzähl-Platzes gibt es zusätzlich die Gruppe «Fahren» als Abkürzung.
 - Handyansicht: Auf schmalen Bildschirmen zeigt die App einen Tag pro Bildschirm mit Tagesleiste Mo–So (Punkt: grün = alles besetzt, gelb = offen, rot = Konflikt). «Ganze Woche» schaltet auf die Tabelle um.

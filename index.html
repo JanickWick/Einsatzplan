@@ -626,13 +626,13 @@ function dayCode(e, iso){
   if(d.count.includes(e.id)){ parts.push({k:'count', t:C.count}); titles.push('Abzählen ' + S.countStart + '–' + S.countEnd); }
   const drives = (d.extra || []).filter(x => x.empId === e.id);
   if(drives.length){
-    parts.push({k:'drive', t:C.drive});
+    if(!d.count.includes(e.id)) parts.push({k:'drive', t:C.drive}); // wer abzählt, fährt automatisch: nur A
     drives.forEach(x => { const t = x.tourId ? tourById(x.tourId) : null; titles.push('Fahren' + (t ? ' ' + t.name : '') + ' ' + S.soloStart + '–' + (x.actualEnd || 'ca. ' + extraEnd(x))); });
   }
   const a = absenceFor(e.id, iso);
   if(a){ parts.push({k:a.type, t:C[a.type]}); titles.push(ABS_TYPES[a.type] + (a.note ? ' – ' + a.note : '')); }
   const work = parts.filter(p => p.k === 'count' || p.k === 'drive').length;
-  const cls = !parts.length ? '' : (a && work ? 'conflict' : (work === 2 ? 'k-both' : 'k-' + parts[0].k));
+  const cls = !parts.length ? '' : (a && work ? 'conflict' : 'k-' + parts[0].k);
   return {text: parts.map(p => p.t).join('/'), cls, title: titles.join('\n'), tours: drives.map(x => x.tourId ? tourById(x.tourId) : null).filter(Boolean).map(t => t.name)};
 }
 function monthHeadHTML(dates, todayISO){
@@ -691,9 +691,8 @@ function renderPlan(){
   html += '</tbody></table></div>';
   const LG = (cls, code, label) => '<span class="lgi"><span class="mc ' + cls + ' lg">' + esc(code) + '</span> ' + label + '</span>';
   html += '<div class="plan-legend">' +
-    LG('k-count', C.count, 'Abzählen ' + esc(S.countStart) + '–' + esc(S.countEnd)) +
-    LG('k-drive', C.drive, 'Fahren ab ' + esc(S.soloStart) + ' bis fertig') +
-    LG('k-both', C.count + '/' + C.drive, 'Abzählen und Fahren') +
+    LG('k-count', C.count, 'Abzählen') +
+    LG('k-drive', C.drive, 'Fahren') +
     LG('k-frei', C.frei, 'Frei') + LG('k-krank', C.krank, 'Krank') + LG('k-ferien', C.ferien, 'Ferien') + LG('k-andere', C.andere, 'Andere') +
     (anyOpen ? LG('k-open', '2', 'offene Plätze') : '') +
     '</div></div>';
@@ -730,9 +729,8 @@ function monthToSheets(m){
     rows.push([T(e.name, 'name'), ...cells, T(nA || '', 'num'), T(nF || '', 'num'), T(e.hours && min ? Math.round(min/6)/10 : '', 'num')]);
   }
   rows.push([]);
-  rows.push([T('Legende', 'bold'), T(C.count, 'count'), T('Abzählen ' + S.countStart + '–' + S.countEnd)]);
-  rows.push(['', T(C.drive, 'drive'), T('Fahren ab ' + S.soloStart + ' bis fertig (Tour steht in der Zelle)')]);
-  rows.push(['', T(C.count + '/' + C.drive, 'both'), T('Abzählen und Fahren')]);
+  rows.push([T('Legende', 'bold'), T(C.count, 'count'), T('Abzählen')]);
+  rows.push(['', T(C.drive, 'drive'), T('Fahren (Tour steht in der Zelle)')]);
   rows.push(['', T(C.frei, 'frei'), T('Frei')]);
   rows.push(['', T(C.krank, 'krank'), T('Krank')]);
   rows.push(['', T(C.ferien, 'ferien'), T('Ferien')]);
