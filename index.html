@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Einsatzplan Spedition</title>
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Einsatzplan">
 <style>
 :root{
   --bg:#f3f4f6; --surface:#ffffff; --surface2:#f8f9fb; --text:#1b1f24; --muted:#6b7280; --border:#d7dbe2;
@@ -1285,6 +1291,8 @@ document.getElementById('app').addEventListener('change', e => {
 applyTheme();
 render();
 if(sync.enabled){ setSyncStatus('busy', 'Lade …'); syncPull(true); }
+// Als App installierbar (nur wenn über http/https geladen)
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){ navigator.serviceWorker.register('sw.js').catch(() => {}); }
 </script>
 </body>
 </html>

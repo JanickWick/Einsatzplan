@@ -29,6 +29,10 @@ Browser, in dem man die Datei geöffnet hat. Sie werden nicht automatisch zwisch
 Achtung: Wird der Browser-Verlauf/Website-Daten gelöscht oder ein anderer Browser verwendet,
 sind die Daten dort nicht vorhanden – dann die letzte JSON-Sicherung importieren.
 
+## Als App installieren (PC und Handy)
+
+Die Seite ist eine installierbare Web-App. Am PC in Chrome oder Edge die Adresse öffnen, dann rechts in der Adresszeile auf das Installieren-Symbol klicken (oder Menü → «Einsatzplan installieren» bzw. «Apps → Diese Seite als App installieren»). Danach gibt es ein Symbol auf dem Desktop und im Startmenü, die App öffnet sich in einem eigenen Fenster. Auf dem Handy wie oben beschrieben «Zum Home-Bildschirm» hinzufügen.
+
 ## Online-Synchronisation (Vercel)
 
 Mit der Online-Synchronisation sehen alle Geräte denselben Plan. Dafür läuft die App auf Vercel, der Plan liegt in Vercel Blob.
