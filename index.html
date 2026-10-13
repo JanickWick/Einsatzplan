@@ -181,6 +181,37 @@ table.settings .days label{margin-right:4px;font-size:.85em}
 .mplan .mlabel .meta{display:inline;font-weight:400;color:var(--muted);font-size:.85em;margin-left:4px}
 .mplan h2{margin-top:18px;font-size:1.1rem}
 .mplan .person-row .chip{font-size:.88em}
+/* Monatsplan */
+:root{--k-count-bg:#dbe7ff;--k-count-fg:#1e40af;--k-drive-bg:#dcfce7;--k-drive-fg:#166534;--k-both-bg:#ccfbf1;--k-both-fg:#115e59;--k-frei-bg:#e5e7eb;--k-frei-fg:#374151;--k-krank-bg:#fee2e2;--k-krank-fg:#991b1b;--k-ferien-bg:#ffedd5;--k-ferien-fg:#9a3412;--k-andere-bg:#ede9fe;--k-andere-fg:#5b21b6;--k-open-bg:#fff4bf;--k-open-fg:#7a5a00}
+:root[data-theme="dark"]{--k-count-bg:#1e3a8a;--k-count-fg:#bfdbfe;--k-drive-bg:#14532d;--k-drive-fg:#bbf7d0;--k-both-bg:#134e4a;--k-both-fg:#99f6e4;--k-frei-bg:#374151;--k-frei-fg:#e5e7eb;--k-krank-bg:#7f1d1d;--k-krank-fg:#fecaca;--k-ferien-bg:#7c2d12;--k-ferien-fg:#fed7aa;--k-andere-bg:#4c1d95;--k-andere-fg:#ddd6fe;--k-open-bg:#4a3d0a;--k-open-fg:#fde68a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k-count-bg:#1e3a8a;--k-count-fg:#bfdbfe;--k-drive-bg:#14532d;--k-drive-fg:#bbf7d0;--k-both-bg:#134e4a;--k-both-fg:#99f6e4;--k-frei-bg:#374151;--k-frei-fg:#e5e7eb;--k-krank-bg:#7f1d1d;--k-krank-fg:#fecaca;--k-ferien-bg:#7c2d12;--k-ferien-fg:#fed7aa;--k-andere-bg:#4c1d95;--k-andere-fg:#ddd6fe;--k-open-bg:#4a3d0a;--k-open-fg:#fde68a}}
+table.month{font-size:.85em;width:auto;min-width:100%}
+table.month th,table.month td{padding:2px 1px;text-align:center;min-width:30px;width:30px;border-right:1px solid var(--border);vertical-align:middle}
+table.month th:first-child,table.month td:first-child{text-align:left;min-width:130px;width:auto;position:sticky;left:0;background:var(--surface);z-index:3;padding:4px 8px;font-weight:600;white-space:nowrap}
+table.month thead th:first-child{z-index:4;background:var(--surface2)}
+table.month thead th{line-height:1.2;padding:3px 1px}
+table.month th .wdl{font-size:.75em;font-weight:500;color:var(--muted)}
+table.month th.kw{font-size:.75em;color:var(--muted);font-weight:600;border-bottom:none;text-align:left;padding-left:4px;white-space:nowrap}
+table.month .we{background:var(--surface2)}
+table.month .wk-start{border-left:2px solid var(--muted)}
+table.month th.today,table.month td.today{box-shadow:inset 0 0 0 2px var(--accent)}
+table.month td.mc{font-weight:700;height:32px;position:relative;font-size:.95em}
+table.month td.mc .tour{display:block;font-size:.55em;font-weight:500;line-height:1;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:30px;margin:1px auto 0}
+table.month .tot{min-width:34px;width:34px;color:var(--muted);font-weight:600;background:var(--surface2)}
+table.month td.tot{font-size:.9em}
+table.month tr.openrow td{font-weight:600;font-size:.8em;height:24px;border-top:2px solid var(--border)}
+.k-count{background:var(--k-count-bg);color:var(--k-count-fg)}
+.k-drive{background:var(--k-drive-bg);color:var(--k-drive-fg)}
+.k-both{background:var(--k-both-bg);color:var(--k-both-fg)}
+.k-frei{background:var(--k-frei-bg);color:var(--k-frei-fg)}
+.k-krank{background:var(--k-krank-bg);color:var(--k-krank-fg)}
+.k-ferien{background:var(--k-ferien-bg);color:var(--k-ferien-fg)}
+.k-andere{background:var(--k-andere-bg);color:var(--k-andere-fg)}
+.k-open{background:var(--k-open-bg);color:var(--k-open-fg)}
+table.month td.conflict{background:var(--err-bg);color:var(--err-text);box-shadow:inset 0 0 0 2px var(--err-border)}
+.plan-legend .lgi{white-space:nowrap}
+.plan-legend .mc.lg{display:inline-block;min-width:30px;padding:2px 6px;border-radius:6px;font-weight:700;text-align:center}
+input.code{width:4em;text-align:center}
 /* Übersicht */
 .plan-title{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
 .plan-title h1{font-size:1.45rem;margin:0}
@@ -205,6 +236,10 @@ table.plan td.total{white-space:nowrap}
   .card{box-shadow:none;border-color:#9a9a9a;padding:0;border:none}
   .table-wrap{overflow:visible;border-color:#9a9a9a;break-inside:avoid}
   table.plan th,table.plan td{min-width:0;padding:5px 6px;position:static}
+  table.month{font-size:9px;width:100%}
+  table.month th,table.month td{min-width:0;width:auto;position:static;padding:1px}
+  table.month td.mc{height:22px}
+  .k-count,.k-drive,.k-both,.k-frei,.k-krank,.k-ferien,.k-andere,.k-open{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .chip{background:hsl(var(--h) 85% 90%)!important;color:hsl(var(--h) 60% 22%)!important;border-color:hsl(var(--h) 55% 60%)!important;font-size:.95em}
   .chip.open{background:#fff4bf!important;color:#000!important;border-color:#c9a300!important}
   .chip.abs{background:#ffe1e1!important;color:#a00!important;border-color:#d00!important}
@@ -292,7 +327,7 @@ function defaultState(){
   return {
     version: 1,
     theme: 'auto',
-    settings: { countStart:'02:00', countEnd:'11:00', driveStart:'04:30', soloStart:'04:30', driveEnd:'12:00', countSlots:[2,2,2,2,2,2,1] },
+    settings: { countStart:'02:00', countEnd:'11:00', driveStart:'04:30', soloStart:'04:30', driveEnd:'12:00', countSlots:[2,2,2,2,2,2,1], codes:{count:'A', drive:'F', frei:'X', krank:'K', ferien:'Fe', andere:'An'} },
     employees: [
       {id:'e1', name:'Salvatore', group:'spedition', pensum:null, hours:true},
       {id:'e2', name:'Riza',      group:'spedition', pensum:null, hours:true},
@@ -320,6 +355,7 @@ function normalize(obj){
   s.settings = Object.assign({}, d.settings, (obj && obj.settings) || {});
   if(!Array.isArray(s.settings.countSlots) || s.settings.countSlots.length !== 7) s.settings.countSlots = d.settings.countSlots;
   s.settings.countSlots = s.settings.countSlots.map(n => Math.max(0, parseInt(n,10) || 0));
+  s.settings.codes = Object.assign({}, d.settings.codes, (obj && obj.settings && obj.settings.codes) || {});
   s.employees = (Array.isArray(s.employees) ? s.employees : []).map((e, i) => ({id:e.id||uid(), name:String(e.name||''), group: e.group==='aushilfe'?'aushilfe':'spedition', pensum: e.pensum==null||e.pensum===''? null : Number(e.pensum), hours: typeof e.hours === 'boolean' ? e.hours : e.group !== 'aushilfe', hue: Number.isFinite(Number(e.hue)) && e.hue !== null && e.hue !== '' ? Number(e.hue) : HUES[i % HUES.length].h}));
   s.vans = (Array.isArray(s.vans) ? s.vans : []).map(v => ({id:v.id||uid(), name:String(v.name||''), plate:String(v.plate||'')}));
   s.tours = (Array.isArray(s.tours) ? s.tours : []).map(t => ({id:t.id||uid(), name:String(t.name||''), days:(Array.isArray(t.days)&&t.days.length===7)?t.days.map(x=>x?1:0):[1,1,1,1,1,1,0], approxEnd:t.approxEnd||'12:00', vanId:t.vanId||null}));
@@ -579,87 +615,133 @@ function renderWeek(){
   return html;
 }
 
-/* ---------- Ansicht: Übersicht (farbiger Plan, druckbar) ---------- */
-function chip(empId, sub, cls){
-  const e = empById(empId);
-  if(!e) return '<span class="chip open">offen</span>';
-  return '<span class="chip ' + (cls || '') + '" style="--h:' + e.hue + '">' + esc(e.name) + (sub ? ' <span class="sub">' + esc(sub) + '</span>' : '') + '</span>';
+/* ---------- Ansicht: Übersicht (Monatsplan mit Kürzeln) ---------- */
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+let monthStart = null;
+function curMonth(){ if(!monthStart) monthStart = new Date(weekStart.getFullYear(), weekStart.getMonth(), 1); return monthStart; }
+function monthDates(m){ const out = []; for(let d = new Date(m); d.getMonth() === m.getMonth(); d = addDays(d, 1)) out.push(new Date(d)); return out; }
+// Kürzel und Beschreibung für eine Person an einem Tag
+function dayCode(e, iso){
+  const C = state.settings.codes, S = state.settings, d = dayRO(iso), parts = [], titles = [];
+  if(d.count.includes(e.id)){ parts.push({k:'count', t:C.count}); titles.push('Abzählen ' + S.countStart + '–' + S.countEnd); }
+  const drives = (d.extra || []).filter(x => x.empId === e.id);
+  if(drives.length){
+    parts.push({k:'drive', t:C.drive});
+    drives.forEach(x => { const t = x.tourId ? tourById(x.tourId) : null; titles.push('Fahren' + (t ? ' ' + t.name : '') + ' ' + S.soloStart + '–' + (x.actualEnd || 'ca. ' + extraEnd(x))); });
+  }
+  const a = absenceFor(e.id, iso);
+  if(a){ parts.push({k:a.type, t:C[a.type]}); titles.push(ABS_TYPES[a.type] + (a.note ? ' – ' + a.note : '')); }
+  const work = parts.filter(p => p.k === 'count' || p.k === 'drive').length;
+  const cls = !parts.length ? '' : (a && work ? 'conflict' : (work === 2 ? 'k-both' : 'k-' + parts[0].k));
+  return {text: parts.map(p => p.t).join('/'), cls, title: titles.join('\n'), tours: drives.map(x => x.tourId ? tourById(x.tourId) : null).filter(Boolean).map(t => t.name)};
 }
-function planCountCell(d, marks){
-  const iso = toISO(d), wd = wdIdx(d), day = dayRO(iso), n = slotCount(iso, wd);
-  let c = '';
-  for(let i = 0; i < n; i++) c += '<div>' + chip(day.count[i], null, marks['count:'+iso+':'+i] === 'error' ? 'conflict' : '') + '</div>';
-  return c;
-}
-function planDriveCell(d, marks){
-  const iso = toISO(d), ex = dayRO(iso).extra || [];
-  let c = '';
-  ex.forEach((x, i) => {
-    c += '<div>' + chip(x.empId, x.tourId ? extraLabel(x) : null, marks['x:'+iso+':'+i] === 'error' ? 'conflict' : '') + '<span class="meta">' + (x.actualEnd ? 'bis ' + esc(x.actualEnd) : 'bis ca. ' + esc(extraEnd(x))) + '</span></div>';
-  });
-  return c;
-}
-function personChipsHTML(e, iso){
-  const as = personDayAssignments(e.id, iso), a = absenceFor(e.id, iso);
-  let c = '';
-  for(const x of as) c += '<div><span class="chip" style="--h:' + e.hue + '">' + esc(x.short) + ' <span class="sub">' + esc(x.start) + '–' + (x.approx ? 'ca. ' : '') + esc(x.end) + '</span></span></div>';
-  if(a) c += '<div><span class="chip abs">' + ABS_TYPES[a.type] + '</span></div>';
-  return c;
+function monthHeadHTML(dates, todayISO){
+  // Zeile 1: Kalenderwochen, Zeile 2: Wochentag + Datum
+  let kwRow = '<tr><th class="kw"></th>', dayRow = '<tr><th></th>';
+  let i = 0;
+  while(i < dates.length){
+    let j = i; while(j + 1 < dates.length && wdIdx(dates[j + 1]) !== 0) j++;
+    kwRow += '<th class="kw wk-start" colspan="' + (j - i + 1) + '">KW ' + isoWeek(dates[i]).week + '</th>';
+    i = j + 1;
+  }
+  for(const d of dates){
+    const wd = wdIdx(d), iso = toISO(d);
+    dayRow += '<th class="' + (wd >= 5 ? 'we ' : '') + (wd === 0 ? 'wk-start ' : '') + (iso === todayISO ? 'today' : '') + '"><span class="wdl">' + WD[wd] + '</span><br>' + d.getDate() + '</th>';
+  }
+  return kwRow + '<th class="kw" colspan="3"></th></tr>' + dayRow + '<th class="tot" title="Tage Abzählen">' + esc(state.settings.codes.count) + '</th><th class="tot" title="Tage Fahren">' + esc(state.settings.codes.drive) + '</th><th class="tot">Std</th></tr>';
 }
 function renderPlan(){
-  const dates = weekDates(weekStart), S = state.settings, todayISO = toISO(new Date()), w = isoWeek(weekStart);
-  const {issues, marks} = computeIssues(dates);
-  const nErr = issues.filter(i => i.sev === 'error').length;
-  const info = dayInfo(dates, issues), open = info.reduce((s, x) => s + x.open, 0);
-  let html = '<div class="toolbar">' + weekNavHTML() + '<div class="right">';
-  html += open ? '<span class="badge" style="background:var(--warn-bg);border-color:var(--warn-border)" data-act="gotoweek">' + open + (open === 1 ? ' Platz offen' : ' Plätze offen') + '</span>' : '<span class="badge ok">Alle Plätze besetzt</span>';
+  const m = curMonth(), dates = monthDates(m), todayISO = toISO(new Date()), S = state.settings, C = S.codes;
+  const first = dates[0], last = dates[dates.length - 1];
+  // Prüfungen über alle Wochen, die den Monat berühren
+  const allDates = []; for(let d = mondayOf(first); d <= last; d = addDays(d, 1)) allDates.push(new Date(d));
+  const {issues} = computeIssues(allDates);
+  const nErr = issues.filter(i => i.sev === 'error' && i.iso >= toISO(first) && i.iso <= toISO(last)).length;
+  let html = '<div class="toolbar"><div class="weeknav">' +
+    '<button data-act="prevmonth" title="Vorheriger Monat">‹</button><button data-act="todaymonth">Heute</button><button data-act="nextmonth" title="Nächster Monat">›</button>' +
+    '<span class="weeklabel"><strong>' + MONTHS[m.getMonth()] + ' ' + m.getFullYear() + '</strong></span></div><div class="right">';
   if(nErr) html += '<span class="badge err" data-act="gotoweek">' + nErr + (nErr === 1 ? ' Konflikt' : ' Konflikte') + '</span>';
-  html += viewToggleHTML() + '<button data-act="print">Drucken / PDF</button><button data-act="xlsx">Excel exportieren</button><button data-act="gotoweek">Bearbeiten</button></div></div>';
-  const legend = '<div class="plan-legend"><span class="chip open">offen</span><span class="muted">= noch nicht besetzt</span><span class="chip abs">Ferien</span><span class="muted">= abwesend</span></div>';
-  const countSub = esc(S.countStart) + ' – ' + esc(S.countEnd), driveSub = 'ab ' + esc(S.soloStart) + ' bis fertig';
-
-  if(isMobile()){
-    const i = curDay(), d = dates[i], iso = toISO(d);
-    html += dayStripHTML(dates, info);
-    html += '<div class="card plan mplan"><div class="plan-title"><h1>' + WD_LONG[i] + '</h1><span class="kw">' + fmtDate(d) + ' · KW ' + w.week + '</span></div>';
-    html += '<div class="msec"><div class="mlabel">Abzählen <span class="meta">' + countSub + '</span></div>' + planCountCell(d, marks) + '</div>';
-    html += '<div class="msec"><div class="mlabel">Fahren <span class="meta">' + driveSub + '</span></div>' + (planDriveCell(d, marks) || '<span class="muted small">Niemand eingeteilt.</span>') + '</div>';
-    html += '<h2>Personen</h2>';
-    let any = false;
-    for(const e of state.employees){
-      const c = personChipsHTML(e, iso);
-      if(!c) continue;
-      any = true;
-      html += '<div class="msec person-row"><div class="mlabel"><span class="dot" style="--h:' + e.hue + '"></span>' + esc(e.name) + '</div>' + c + '</div>';
-    }
-    if(!any) html += '<p class="muted small">Niemand eingeteilt.</p>';
-    return html + legend + '</div>';
-  }
-
-  html += '<div class="card plan"><div class="plan-title"><h1>Einsatzplan Spedition</h1><span class="kw">KW ' + w.week + ' · ' + fmtShort(dates[0]) + ' – ' + fmtDate(dates[6]) + '</span></div>';
-  const head = '<thead><tr><th></th>' + dates.map(d => '<th class="' + (toISO(d) === todayISO ? 'today' : '') + '">' + WD_LONG[wdIdx(d)] + '<span class="meta">' + fmtDate(d) + '</span></th>').join('');
-  html += '<div class="table-wrap"><table class="plan">' + head + '</tr></thead><tbody>';
-  html += '<tr><td class="label">Abzählen<span class="meta">' + countSub + '</span></td>';
-  for(const d of dates) html += '<td class="' + (toISO(d) === todayISO ? 'today' : '') + '">' + planCountCell(d, marks) + '</td>';
-  html += '</tr>';
-  html += '<tr><td class="label">Fahren<span class="meta">' + driveSub + '</span></td>';
-  for(const d of dates) html += '<td class="' + (toISO(d) === todayISO ? 'today' : '') + '">' + (planDriveCell(d, marks) || '<span class="muted">–</span>') + '</td>';
-  html += '</tr>';
-  html += '</tbody></table></div>';
-  // Personalplan: Person x Tag
-  html += '<h2>Personalplan</h2><div class="table-wrap"><table class="plan">' + head + '<th>Total</th></tr></thead><tbody>';
+  html += '<button data-act="print">Drucken / PDF</button><button data-act="xlsxmonth">Excel exportieren</button><button data-act="gotoweek">Bearbeiten (Wochenplan)</button></div></div>';
+  html += '<div class="card plan"><div class="plan-title"><h1>Einsatzplan Spedition</h1><span class="kw">' + MONTHS[m.getMonth()] + ' ' + m.getFullYear() + '</span></div>';
+  html += '<div class="table-wrap"><table class="month"><thead>' + monthHeadHTML(dates, todayISO) + '</thead><tbody>';
   for(const e of state.employees){
-    let total = 0, cells = '';
+    let nA = 0, nF = 0, min = 0, cells = '';
     for(const d of dates){
-      const iso = toISO(d);
-      total += mergedMinutes(personDayAssignments(e.id, iso));
-      cells += '<td class="' + (iso === todayISO ? 'today' : '') + '">' + (personChipsHTML(e, iso) || '<span class="muted">–</span>') + '</td>';
+      const iso = toISO(d), wd = wdIdx(d), c = dayCode(e, iso);
+      if(c.cls === 'k-count' || c.cls === 'k-both' || (c.cls === 'conflict' && dayRO(iso).count.includes(e.id))) nA++;
+      if(c.cls === 'k-drive' || c.cls === 'k-both' || (c.cls === 'conflict' && (dayRO(iso).extra || []).some(x => x.empId === e.id))) nF++;
+      min += mergedMinutes(personDayAssignments(e.id, iso));
+      cells += '<td class="mc ' + c.cls + (wd >= 5 ? ' we' : '') + (wd === 0 ? ' wk-start' : '') + (iso === todayISO ? ' today' : '') + '"' + (c.title ? ' title="' + esc(c.title) + '"' : '') + '>' + esc(c.text) +
+        (c.tours.length ? '<span class="tour">' + esc(c.tours.join(', ')) + '</span>' : '') + '</td>';
     }
-    html += '<tr><td class="label"><span class="dot" style="--h:' + e.hue + '"></span>' + esc(e.name) + '<span class="meta">' + GROUPS[e.group] + '</span></td>' + cells +
-      '<td class="total">' + (e.hours ? '<strong>' + fmtH(total) + '</strong>' + (e.pensum ? '<span class="meta">von ' + e.pensum.toLocaleString('de-CH') + ' h</span>' : '') : '<span class="muted">–</span>') + '</td></tr>';
+    html += '<tr><td><span class="dot" style="--h:' + e.hue + '"></span>' + esc(e.name) + '</td>' + cells +
+      '<td class="tot">' + (nA || '') + '</td><td class="tot">' + (nF || '') + '</td><td class="tot">' + (e.hours && min ? (Math.round(min/6)/10).toLocaleString('de-CH') : '') + '</td></tr>';
   }
-  html += '</tbody></table></div>' + legend;
-  return html + '</div>';
+  // Offene Abzähl-Plätze pro Tag (nur für Tage, an denen schon geplant wurde)
+  let openRow = '', anyOpen = false;
+  for(const d of dates){
+    const iso = toISO(d), wd = wdIdx(d), day = dayRO(iso);
+    const planned = day.count.some(Boolean) || (day.extra || []).some(x => x.empId);
+    let open = 0;
+    if(planned){ for(let i = 0; i < slotCount(iso, wd); i++) if(!day.count[i]) open++; for(const x of (day.extra || [])) if(!x.empId) open++; }
+    if(open) anyOpen = true;
+    openRow += '<td class="mc' + (open ? ' k-open' : '') + (wd >= 5 ? ' we' : '') + (wd === 0 ? ' wk-start' : '') + '"' + (open ? ' title="' + open + ' Platz/Plätze offen"' : '') + '>' + (open || '') + '</td>';
+  }
+  if(anyOpen) html += '<tr class="openrow"><td class="muted">offen</td>' + openRow + '<td class="tot" colspan="3"></td></tr>';
+  html += '</tbody></table></div>';
+  const LG = (cls, code, label) => '<span class="lgi"><span class="mc ' + cls + ' lg">' + esc(code) + '</span> ' + label + '</span>';
+  html += '<div class="plan-legend">' +
+    LG('k-count', C.count, 'Abzählen ' + esc(S.countStart) + '–' + esc(S.countEnd)) +
+    LG('k-drive', C.drive, 'Fahren ab ' + esc(S.soloStart) + ' bis fertig') +
+    LG('k-both', C.count + '/' + C.drive, 'Abzählen und Fahren') +
+    LG('k-frei', C.frei, 'Frei') + LG('k-krank', C.krank, 'Krank') + LG('k-ferien', C.ferien, 'Ferien') + LG('k-andere', C.andere, 'Andere') +
+    (anyOpen ? LG('k-open', '2', 'offene Plätze') : '') +
+    '</div></div>';
+  return html;
+}
+function monthToSheets(m){
+  const dates = monthDates(m), S = state.settings, C = S.codes, T = (v, st) => ({v, st});
+  const title = 'Einsatzplan ' + MONTHS[m.getMonth()] + ' ' + m.getFullYear();
+  const n = dates.length, lastCol = colLetter(n + 3);
+  // Kalenderwochen-Zeile mit Verbund je Woche
+  const kwRow = [T('', 'headL')], merges = ['A1:' + lastCol + '1'];
+  let i = 0;
+  while(i < n){
+    let j = i; while(j + 1 < n && wdIdx(dates[j + 1]) !== 0) j++;
+    kwRow[i + 1] = T('KW ' + isoWeek(dates[i]).week, 'head');
+    for(let k = i + 2; k <= j + 1; k++) kwRow[k] = T('', 'head');
+    if(j > i) merges.push(colLetter(i + 1) + '3:' + colLetter(j + 1) + '3');
+    i = j + 1;
+  }
+  kwRow.push(T('', 'head'), T('', 'head'), T('', 'head'));
+  const wdRow = [T('Name', 'headL'), ...dates.map(d => T(WD[wdIdx(d)], wdIdx(d) >= 5 ? 'we' : 'head')), T(C.count, 'head'), T(C.drive, 'head'), T('Std', 'head')];
+  const dtRow = [T('', 'headL'), ...dates.map(d => T(d.getDate(), wdIdx(d) >= 5 ? 'we' : 'head')), T('Tage', 'head'), T('Tage', 'head'), T('', 'head')];
+  const rows = [[T(title, 'title')], [], kwRow, wdRow, dtRow];
+  for(const e of state.employees){
+    let nA = 0, nF = 0, min = 0; const cells = [];
+    for(const d of dates){
+      const iso = toISO(d), day = dayRO(iso), c = dayCode(e, iso);
+      if(day.count.includes(e.id)) nA++;
+      if((day.extra || []).some(x => x.empId === e.id)) nF++;
+      min += mergedMinutes(personDayAssignments(e.id, iso));
+      const st = c.cls === 'conflict' ? 'conflict' : c.cls ? c.cls.slice(2) : (wdIdx(d) >= 5 ? 'we' : 'cell');
+      cells.push(T(c.text + (c.tours.length ? '\n' + c.tours.join(',') : ''), st));
+    }
+    rows.push([T(e.name, 'name'), ...cells, T(nA || '', 'num'), T(nF || '', 'num'), T(e.hours && min ? Math.round(min/6)/10 : '', 'num')]);
+  }
+  rows.push([]);
+  rows.push([T('Legende', 'bold'), T(C.count, 'count'), T('Abzählen ' + S.countStart + '–' + S.countEnd)]);
+  rows.push(['', T(C.drive, 'drive'), T('Fahren ab ' + S.soloStart + ' bis fertig (Tour steht in der Zelle)')]);
+  rows.push(['', T(C.count + '/' + C.drive, 'both'), T('Abzählen und Fahren')]);
+  rows.push(['', T(C.frei, 'frei'), T('Frei')]);
+  rows.push(['', T(C.krank, 'krank'), T('Krank')]);
+  rows.push(['', T(C.ferien, 'ferien'), T('Ferien')]);
+  rows.push(['', T(C.andere, 'andere'), T('Andere')]);
+  return [{name:'Monatsplan', rows, widths:[18, ...dates.map(() => 5.5), 6, 6, 7], freeze:{x:1, y:5}, merges}];
+}
+function exportXlsxMonth(){
+  const m = curMonth();
+  downloadBlob(buildXlsx(monthToSheets(m)), 'Einsatzplan_' + m.getFullYear() + '-' + pad(m.getMonth() + 1) + '.xlsx');
 }
 
 /* ---------- Ansicht: Personalübersicht ---------- */
@@ -742,6 +824,8 @@ function renderSettings(){
     '<label>Fahren ab<input type="time" value="' + esc(S.soloStart) + '" data-act="set-soloStart"></label>' +
     '<label>Fahren ca. bis (ohne Tour)<input type="time" value="' + esc(S.driveEnd) + '" data-act="set-driveEnd"></label></div>' +
     '<p class="muted small">Fahren ist «bis fertig»: Das tatsächliche Ende wird pro Tag beim Eintrag erfasst. Bis dahin rechnet die App mit dem ungefähren Ende der gewählten Tour, sonst mit «Fahren ca. bis».</p>' +
+    '<h3>Kürzel im Monatsplan (Übersicht)</h3><div class="form">' +
+    [['count','Abzählen'],['drive','Fahren'],['frei','Frei'],['krank','Krank'],['ferien','Ferien'],['andere','Andere']].map(([k,l]) => '<label>' + l + '<input type="text" maxlength="3" class="code" value="' + esc(S.codes[k]) + '" data-act="set-code" data-key="' + k + '"></label>').join('') + '</div>' +
     '<h3>Abzähl-Plätze pro Wochentag</h3><div class="wdgrid">' +
     WD.map((w,i) => '<label>' + w + '<input type="number" min="0" max="10" value="' + S.countSlots[i] + '" data-act="set-slots" data-idx="' + i + '"></label>').join('') +
     '</div></div>';
@@ -854,26 +938,78 @@ function zipStore(files){ // files: [{name, text}] – ZIP ohne Kompression
 }
 const xml = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
 function colLetter(i){ let s = ''; i++; while(i > 0){ const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
-// Zelle: string | number | {v, bold:true}
-function sheetXML(rows, widths){
+// Formatvorlagen für den Excel-Export (Farben wie in der App)
+const XSTYLES = {
+  default:  {},
+  bold:     {bold:true},
+  title:    {bold:true, size:14},
+  head:     {bold:true, fill:'E5E7EB', align:'center', border:true},
+  headL:    {bold:true, fill:'E5E7EB', align:'left', border:true},
+  we:       {bold:true, fill:'D1D5DB', align:'center', border:true},
+  cell:     {align:'center', border:true},
+  text:     {border:true},
+  name:     {bold:true, border:true},
+  num:      {align:'center', border:true},
+  count:    {wrap:true, bold:true, fill:'DBE7FF', color:'1E40AF', align:'center', border:true},
+  drive:    {wrap:true, bold:true, fill:'DCFCE7', color:'166534', align:'center', border:true},
+  both:     {wrap:true, bold:true, fill:'CCFBF1', color:'115E59', align:'center', border:true},
+  frei:     {wrap:true, bold:true, fill:'E5E7EB', color:'374151', align:'center', border:true},
+  krank:    {wrap:true, bold:true, fill:'FEE2E2', color:'991B1B', align:'center', border:true},
+  ferien:   {wrap:true, bold:true, fill:'FFEDD5', color:'9A3412', align:'center', border:true},
+  andere:   {wrap:true, bold:true, fill:'EDE9FE', color:'5B21B6', align:'center', border:true},
+  open:     {bold:true, fill:'FFF4BF', color:'7A5A00', align:'center', border:true},
+  conflict: {wrap:true, bold:true, fill:'FDE2E2', color:'B91C1C', align:'center', border:true},
+  countL:   {fill:'DBE7FF', color:'1E40AF', border:true},
+  driveL:   {fill:'DCFCE7', color:'166534', border:true},
+};
+const XSTYLE_INDEX = {};
+function stylesXML(){
+  const fonts = [], fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'], xfs = [];
+  const fontKey = {}, fillKey = {};
+  const fontId = (st) => { const k = (st.bold ? 'b' : '') + '|' + (st.color || '') + '|' + (st.size || 11); if(fontKey[k] == null){ fontKey[k] = fonts.length; fonts.push('<font>' + (st.bold ? '<b/>' : '') + '<sz val="' + (st.size || 11) + '"/>' + (st.color ? '<color rgb="FF' + st.color + '"/>' : '') + '<name val="Calibri"/></font>'); } return fontKey[k]; };
+  const fillId = (st) => { if(!st.fill) return 0; if(fillKey[st.fill] == null){ fillKey[st.fill] = fills.length; fills.push('<fill><patternFill patternType="solid"><fgColor rgb="FF' + st.fill + '"/><bgColor indexed="64"/></patternFill></fill>'); } return fillKey[st.fill]; };
+  Object.keys(XSTYLES).forEach((name, i) => {
+    const st = XSTYLES[name]; XSTYLE_INDEX[name] = i;
+    xfs.push('<xf numFmtId="0" fontId="' + fontId(st) + '" fillId="' + fillId(st) + '" borderId="' + (st.border ? 1 : 0) + '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="' + (st.align || 'general') + '" vertical="center" wrapText="' + (st.wrap ? 1 : 0) + '"/></xf>');
+  });
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts count="' + fonts.length + '">' + fonts.join('') + '</fonts>' +
+    '<fills count="' + fills.length + '">' + fills.join('') + '</fills>' +
+    '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF9CA3AF"/></left><right style="thin"><color rgb="FF9CA3AF"/></right><top style="thin"><color rgb="FF9CA3AF"/></top><bottom style="thin"><color rgb="FF9CA3AF"/></bottom><diagonal/></border></borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="' + xfs.length + '">' + xfs.join('') + '</cellXfs>' +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+}
+// Zelle: string | number | {v, st:'name'} | {v, bold:true}
+function sheetXML(sheet){
+  const {rows, widths, freeze, merges} = sheet;
   let out = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+  if(freeze){
+    out += '<sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane' + (freeze.x ? ' xSplit="' + freeze.x + '"' : '') + (freeze.y ? ' ySplit="' + freeze.y + '"' : '') + ' topLeftCell="' + colLetter(freeze.x || 0) + ((freeze.y || 0) + 1) + '" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>';
+  }
   if(widths && widths.length) out += '<cols>' + widths.map((w, i) => '<col min="' + (i+1) + '" max="' + (i+1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>';
   out += '<sheetData>';
   rows.forEach((row, r) => {
-    out += '<row r="' + (r+1) + '">';
+    out += '<row r="' + (r+1) + '"' + (row.h ? ' ht="' + row.h + '" customHeight="1"' : '') + '>';
     row.forEach((cell, c) => {
       if(cell == null || cell === '') return;
       const ref = colLetter(c) + (r+1);
       const obj = (typeof cell === 'object') ? cell : {v: cell};
-      const style = obj.bold ? ' s="1"' : '';
-      if(typeof obj.v === 'number') out += '<c r="' + ref + '"' + style + '><v>' + obj.v + '</v></c>';
+      const st = obj.st || (obj.bold ? 'bold' : null);
+      const style = st && XSTYLE_INDEX[st] ? ' s="' + XSTYLE_INDEX[st] + '"' : '';
+      if(obj.v === '' || obj.v == null) out += '<c r="' + ref + '"' + style + '/>';
+      else if(typeof obj.v === 'number') out += '<c r="' + ref + '"' + style + '><v>' + obj.v + '</v></c>';
       else out += '<c r="' + ref + '" t="inlineStr"' + style + '><is><t xml:space="preserve">' + xml(obj.v) + '</t></is></c>';
     });
     out += '</row>';
   });
-  return out + '</sheetData></worksheet>';
+  out += '</sheetData>';
+  if(merges && merges.length) out += '<mergeCells count="' + merges.length + '">' + merges.map(m => '<mergeCell ref="' + m + '"/>').join('') + '</mergeCells>';
+  out += '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>';
+  return out + '</worksheet>';
 }
-function buildXlsx(sheets){ // sheets: [{name, rows, widths}]
+function buildXlsx(sheets){ // sheets: [{name, rows, widths, freeze, merges}]
+  const styles = stylesXML();
   const files = [];
   files.push({name:'[Content_Types].xml', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
     sheets.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i+1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('') + '</Types>'});
@@ -883,46 +1019,45 @@ function buildXlsx(sheets){ // sheets: [{name, rows, widths}]
   files.push({name:'xl/_rels/workbook.xml.rels', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
     sheets.map((s, i) => '<Relationship Id="rId' + (i+1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i+1) + '.xml"/>').join('') +
     '<Relationship Id="rId' + (sheets.length+1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'});
-  files.push({name:'xl/styles.xml', text:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'});
-  sheets.forEach((s, i) => files.push({name:'xl/worksheets/sheet' + (i+1) + '.xml', text: sheetXML(s.rows, s.widths)}));
+  files.push({name:'xl/styles.xml', text: styles});
+  sheets.forEach((s, i) => files.push({name:'xl/worksheets/sheet' + (i+1) + '.xml', text: sheetXML(s)}));
   return zipStore(files);
 }
 function weekToSheets(start){
   const dates = weekDates(start), S = state.settings, w = isoWeek(start);
-  const B = v => ({v, bold:true});
+  const T = (v, st) => ({v, st});
   const title = 'Einsatzplan KW ' + w.week + ' (' + fmtDate(start) + ' – ' + fmtDate(addDays(start,6)) + ')';
   // Blatt 1: Wochenplan
-  const rows = [[B(title)], [], [B(''), ...dates.map(d => B(WD[wdIdx(d)] + ' ' + fmtShort(d)))]];
+  const rows = [[T(title, 'title')], [], [T('', 'headL'), ...dates.map(d => T(WD_LONG[wdIdx(d)] + ' ' + fmtShort(d), wdIdx(d) >= 5 ? 'we' : 'head'))]];
   const maxSlots = Math.max(...dates.map(d => slotCount(toISO(d), wdIdx(d))), 0);
   for(let i = 0; i < maxSlots; i++){
-    rows.push(['Abzählen ' + (i+1) + ' (' + S.countStart + '–' + S.countEnd + ')', ...dates.map(d => { const id = dayRO(toISO(d)).count[i]; return id ? empName(id) : ''; })]);
+    rows.push([T('Abzählen ' + (i+1) + ' (' + S.countStart + '–' + S.countEnd + ')', 'countL'), ...dates.map(d => { const iso = toISO(d), id = dayRO(iso).count[i]; if(id) return T(empName(id), 'count'); return i < slotCount(iso, wdIdx(d)) ? T('offen', 'open') : T('', 'cell'); })]);
   }
-  const maxExtra = Math.max(0, ...dates.map(d => (dayRO(toISO(d)).extra || []).length));
-  rows.push([]);
-  rows.push([B('Fahren (ab ' + S.soloStart + ' bis fertig)')]);
-  for(let i = 0; i < Math.max(1, maxExtra); i++){
-    rows.push(['Fahren ' + (i+1), ...dates.map(d => { const x = (dayRO(toISO(d)).extra || [])[i]; if(!x) return ''; return (x.empId ? empName(x.empId) : 'offen') + (x.tourId ? ' – ' + extraLabel(x) : '') + ' – ' + (x.actualEnd || 'ca. ' + extraEnd(x)); })]);
+  const maxExtra = Math.max(1, ...dates.map(d => (dayRO(toISO(d)).extra || []).length));
+  for(let i = 0; i < maxExtra; i++){
+    rows.push([T('Fahren ' + (i+1) + ' (ab ' + S.soloStart + ' bis fertig)', 'driveL'), ...dates.map(d => { const x = (dayRO(toISO(d)).extra || [])[i]; if(!x) return T('', 'cell'); if(!x.empId) return T('offen', 'open'); return T(empName(x.empId) + (x.tourId ? ' – ' + extraLabel(x) : '') + ' – ' + (x.actualEnd || 'ca. ' + extraEnd(x)), 'drive'); })]);
   }
   // Blatt 2: Personal
-  const prow = [[B(title)], [], [B('Name'), B('Gruppe'), B('Pensum h/Woche'), B('Geplant h'), ...dates.map(d => B(WD[wdIdx(d)] + ' ' + fmtShort(d)))]];
+  const prow = [[T(title, 'title')], [], [T('Name', 'headL'), T('Gruppe', 'head'), T('Pensum h', 'head'), T('Geplant h', 'head'), ...dates.map(d => T(WD[wdIdx(d)] + ' ' + fmtShort(d), wdIdx(d) >= 5 ? 'we' : 'head'))]];
   for(const e of state.employees){
     let total = 0; const cells = [];
     for(const d of dates){
       const iso = toISO(d), as = personDayAssignments(e.id, iso), a = absenceFor(e.id, iso), min = mergedMinutes(as); total += min;
       let txt = as.map(x => x.label + ' ' + x.start + '–' + (x.approx ? 'ca. ' : '') + x.end).join('; ');
       if(a) txt = (txt ? txt + '; ' : '') + ABS_TYPES[a.type];
-      cells.push(txt);
+      const st = a && as.length ? 'conflict' : a ? a.type : as.length === 2 ? 'both' : as.length ? as[0].kind : 'cell';
+      cells.push(T(txt, st));
     }
-    prow.push([e.name, GROUPS[e.group], e.hours ? (e.pensum ?? '') : '', e.hours ? Math.round(total/6)/10 : '', ...cells]);
+    prow.push([T(e.name, 'name'), T(GROUPS[e.group], 'text'), T(e.hours ? (e.pensum ?? '') : '', 'num'), T(e.hours ? Math.round(total/6)/10 : '', 'num'), ...cells]);
   }
   // Blatt 3: Abwesenheiten der Woche
   const endISO = toISO(dates[6]), startISO = toISO(dates[0]);
-  const arow = [[B('Abwesenheiten KW ' + w.week)], [], [B('Person'), B('Grund'), B('Von'), B('Bis'), B('Notiz')]];
-  state.absences.filter(a => a.from <= endISO && a.to >= startISO).sort((a,b) => a.from < b.from ? -1 : 1).forEach(a => arow.push([empName(a.empId), ABS_TYPES[a.type], fmtISO(a.from), fmtISO(a.to), a.note]));
+  const arow = [[T('Abwesenheiten KW ' + w.week, 'title')], [], [T('Person', 'headL'), T('Grund', 'head'), T('Von', 'head'), T('Bis', 'head'), T('Notiz', 'headL')]];
+  state.absences.filter(a => a.from <= endISO && a.to >= startISO).sort((a,b) => a.from < b.from ? -1 : 1).forEach(a => arow.push([T(empName(a.empId), 'name'), T(ABS_TYPES[a.type], a.type), T(fmtISO(a.from), 'num'), T(fmtISO(a.to), 'num'), T(a.note, 'text')]));
   return [
-    {name:'Wochenplan', rows, widths:[30, 22, 22, 22, 22, 22, 22, 22]},
-    {name:'Personal', rows:prow, widths:[18, 12, 15, 11, 32, 32, 32, 32, 32, 32, 32]},
-    {name:'Abwesenheiten', rows:arow, widths:[18, 12, 12, 12, 40]},
+    {name:'Wochenplan', rows, widths:[32, 24, 24, 24, 24, 24, 24, 24], freeze:{x:1, y:3}, merges:['A1:H1']},
+    {name:'Personal', rows:prow, widths:[18, 11, 10, 10, 30, 30, 30, 30, 30, 30, 30], freeze:{x:1, y:3}, merges:['A1:K1']},
+    {name:'Abwesenheiten', rows:arow, widths:[18, 12, 12, 12, 40], merges:['A1:E1']},
   ];
 }
 function exportXlsx(){
@@ -955,7 +1090,11 @@ document.getElementById('app').addEventListener('click', e => {
     case 'toggleissues': showIssues = !showIssues; render(); break;
     case 'copyprev': copyPreviousWeek(); break;
     case 'xlsx': exportXlsx(); break;
-    case 'showplan': view = 'plan'; render(); window.scrollTo(0,0); break;
+    case 'showplan': view = 'plan'; monthStart = new Date(weekStart.getFullYear(), weekStart.getMonth(), 1); render(); window.scrollTo(0,0); break;
+    case 'prevmonth': { const m = curMonth(); monthStart = new Date(m.getFullYear(), m.getMonth() - 1, 1); render(); break; }
+    case 'nextmonth': { const m = curMonth(); monthStart = new Date(m.getFullYear(), m.getMonth() + 1, 1); render(); break; }
+    case 'todaymonth': { const t = new Date(); monthStart = new Date(t.getFullYear(), t.getMonth(), 1); render(); break; }
+    case 'xlsxmonth': exportXlsxMonth(); break;
     case 'gotoweek': view = 'week'; render(); window.scrollTo(0,0); break;
     case 'print': { const fw = forceWeek; forceWeek = true; render(); setTimeout(() => { window.print(); forceWeek = fw; render(); }, 50); break; }
     case 'addslot': { const d = dayRW(el.dataset.date); const n = slotCount(el.dataset.date, wdIdx(fromISO(el.dataset.date))); d.count.length = n + 1; d.count.fill(null, n); commit(); break; }
@@ -1014,6 +1153,7 @@ document.getElementById('app').addEventListener('change', e => {
     case 'emp-hours': { const emp = empById(id); if(emp) emp.hours = el.checked; commit(false); break; }
     case 'set-driveEnd': if(val) state.settings.driveEnd = val; commit(false); break;
     case 'set-soloStart': if(val) state.settings.soloStart = val; commit(false); break;
+    case 'set-code': { const k = el.dataset.key; if(val.trim()) state.settings.codes[k] = val.trim().slice(0,3); else el.value = state.settings.codes[k]; commit(false); break; }
     case 'emp-pensum': { const emp = empById(id); if(emp) emp.pensum = val === '' ? null : Math.max(0, Number(val)); commit(false); break; }
     case 'set-countStart': if(val) state.settings.countStart = val; commit(false); break;
     case 'set-countEnd': if(val) state.settings.countEnd = val; commit(false); break;
