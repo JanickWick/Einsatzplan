@@ -135,6 +135,11 @@ table.settings .days label{margin-right:4px;font-size:.85em}
 .notice{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.9em}
 .past{opacity:.6}
 #saveinfo{font-size:.8em;color:var(--muted)}
+.sync{font-size:.78em;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--border);white-space:nowrap}
+.sync.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.sync.busy{background:var(--hint-bg);color:var(--hint-text);border-color:transparent}
+.sync.conflict{background:var(--warn-bg);color:var(--text);border-color:var(--warn-border)}
+.sync.error{background:var(--err-bg);color:var(--err-text);border-color:var(--err-border)}
 /* Farbige Personen-Chips (Hue pro Person über --h) */
 .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:.92em;font-weight:600;line-height:1.3;margin:2px 0;background:hsl(var(--h) 85% 90%);color:hsl(var(--h) 60% 22%);border:1px solid hsl(var(--h) 55% 68%);white-space:nowrap}
 .chip .sub{font-weight:400;opacity:.85;font-size:.9em}
@@ -280,6 +285,7 @@ table.plan td.total{white-space:nowrap}
   </nav>
   <div class="hdr-right">
     <span id="saveinfo"></span>
+    <span id="syncinfo" class="sync" hidden></span>
     <button id="themeBtn" title="Hell-/Dunkelmodus umschalten"></button>
   </div>
 </header>
@@ -378,11 +384,12 @@ function load(){
   }catch(e){ console.warn('Laden fehlgeschlagen', e); }
   return normalize(defaultState());
 }
-function save(){
+function save(pushRemote = true){
   try{
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     const n = new Date();
     document.getElementById('saveinfo').textContent = 'Gespeichert ' + pad(n.getHours()) + ':' + pad(n.getMinutes());
+    if(pushRemote && typeof schedulePush === 'function') schedulePush();
   }catch(e){
     document.getElementById('saveinfo').textContent = 'Speichern fehlgeschlagen!';
     console.error(e);
@@ -836,6 +843,15 @@ function renderSettings(){
   }
   html += '<tr><td><input type="text" id="newTourName" placeholder="Name der Tour"></td><td><input type="time" id="newTourEnd" value="12:00"></td><td><button class="primary" data-act="tour-add">Hinzufügen</button></td></tr>';
   html += '</tbody></table></div></div>';
+  // Online-Synchronisation
+  html += '<div class="card"><h2>Online-Synchronisation</h2>' +
+    '<p class="small muted">Wenn eingeschaltet, wird der Plan auf dem Server gespeichert (Vercel). Alle Geräte mit derselben Adresse sehen denselben Plan. Zum Speichern braucht es das Passwort, das auf Vercel als PLAN_PASSWORD hinterlegt ist.</p>' +
+    '<div class="form">' +
+    '<label>Server-Adresse (leer = gleiche Adresse wie diese Seite)<input type="url" id="syncUrl" style="min-width:20em" placeholder="https://einsatzplan.vercel.app" value="' + esc(sync.url) + '"></label>' +
+    '<label>Passwort zum Speichern<input type="password" id="syncPw" value="' + esc(sync.password) + '" autocomplete="off"></label>' +
+    (sync.enabled ? '<button data-act="sync-off">Ausschalten</button><button data-act="sync-now">Jetzt abgleichen</button>' : '<button class="primary" data-act="sync-on">Einschalten</button>') +
+    '<button data-act="sync-test">Verbindung testen</button></div>' +
+    '<p class="small" id="syncStatusText">' + esc(syncStatusText()) + '</p></div>';
   // Daten
   html += '<div class="card"><h2>Daten</h2><p class="small muted">Alle Daten werden nur in diesem Browser gespeichert (localStorage). Bitte regelmässig eine Sicherung als JSON-Datei exportieren.</p>' +
     '<div class="actions"><button class="primary" data-act="export">Sicherung exportieren (JSON)</button><button data-act="import">Sicherung importieren (JSON)</button><button class="danger" data-act="reset">Alle Daten zurücksetzen</button></div></div>';
@@ -1063,6 +1079,100 @@ function exportXlsx(){
   downloadBlob(buildXlsx(weekToSheets(weekStart)), 'Einsatzplan_KW' + pad(w.week) + '_' + w.year + '.xlsx');
 }
 
+/* ---------- Online-Synchronisation (Vercel: /api/plan) ---------- */
+const SYNC_KEY = 'einsatzplan-sync-v1';
+let sync = (() => { try{ return Object.assign({enabled:false, url:'', password:''}, JSON.parse(localStorage.getItem(SYNC_KEY) || '{}')); }catch(e){ return {enabled:false, url:'', password:''}; } })();
+const syncState = {rev:0, status:'off', msg:'', pushTimer:null, retryTimer:null, busy:false, dirty:false, lastOk:null};
+function saveSyncSettings(){ try{ localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); }catch(e){} }
+function apiUrl(){ const base = (sync.url || '').trim().replace(/\/+$/, ''); return base + '/api/plan'; }
+function setSyncStatus(status, msg){
+  syncState.status = status; syncState.msg = msg || '';
+  if(status === 'ok') syncState.lastOk = new Date();
+  const el = document.getElementById('syncinfo');
+  if(!el) return;
+  if(!sync.enabled){ el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'sync ' + status;
+  el.title = msg || '';
+  el.textContent = status === 'ok' ? '● Online' : status === 'busy' ? '● Speichert …' : status === 'conflict' ? '● Aktualisiert' : '● ' + (msg || 'Offline');
+  const st = document.getElementById('syncStatusText');
+  if(st) st.textContent = syncStatusText();
+}
+function syncStatusText(){
+  if(!sync.enabled) return 'Ausgeschaltet – Daten bleiben nur in diesem Browser.';
+  const t = syncState.lastOk ? ' Letzter Abgleich ' + pad(syncState.lastOk.getHours()) + ':' + pad(syncState.lastOk.getMinutes()) + '.' : '';
+  if(syncState.status === 'ok') return 'Verbunden (Stand Nr. ' + syncState.rev + ').' + t;
+  if(syncState.status === 'busy') return 'Speichert …';
+  return (syncState.msg || 'Keine Verbindung') + '.' + t;
+}
+// Server-Stand übernehmen (lokales Design behalten)
+function applyRemote(j){
+  if(!j || !j.data) return;
+  const theme = state.theme;
+  state = normalize(j.data); state.theme = theme;
+  syncState.rev = j.rev || 0;
+  save(false); render();
+}
+async function syncPull(force){
+  if(!sync.enabled || syncState.busy || (syncState.dirty && !force)) return null;
+  try{
+    const r = await fetch(apiUrl() + (force ? '' : '?rev=' + syncState.rev), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if(!j.unchanged){
+      if(j.data){ if(j.rev !== syncState.rev && !syncState.dirty) applyRemote(j); }
+      else syncState.rev = 0;
+    }
+    setSyncStatus('ok');
+    return j;
+  }catch(e){ setSyncStatus('error', 'Keine Verbindung zum Server'); return null; }
+}
+function schedulePush(){
+  if(!sync.enabled) return;
+  syncState.dirty = true;
+  clearTimeout(syncState.pushTimer);
+  syncState.pushTimer = setTimeout(syncPush, 700);
+}
+async function syncPush(){
+  if(!sync.enabled || !syncState.dirty) return;
+  if(syncState.busy){ schedulePush(); return; }
+  syncState.busy = true; setSyncStatus('busy');
+  try{
+    const r = await fetch(apiUrl(), {method:'PUT', headers:{'Content-Type':'application/json', 'x-plan-password': sync.password || ''}, body: JSON.stringify({baseRev: syncState.rev, data: state})});
+    if(r.status === 401){ syncState.dirty = false; setSyncStatus('error', 'Passwort falsch – Änderungen werden nicht online gespeichert'); return; }
+    if(r.status === 409){
+      const j = await r.json(); syncState.dirty = false; syncState.busy = false;
+      applyRemote(j);
+      setSyncStatus('conflict', 'Jemand anderes hat gleichzeitig gespeichert. Der Plan wurde auf den neuesten Stand gebracht – bitte deine letzte Eingabe prüfen.');
+      alert('Jemand anderes hat gleichzeitig gespeichert.\nDer Plan wurde auf den neuesten Stand gebracht – bitte deine letzte Eingabe prüfen.');
+      return;
+    }
+    if(!r.ok){ let m = 'HTTP ' + r.status; try{ m = (await r.json()).error || m; }catch(e){} throw new Error(m); }
+    const j = await r.json();
+    syncState.rev = j.rev; syncState.dirty = false; setSyncStatus('ok');
+  }catch(e){
+    setSyncStatus('error', 'Nicht online gespeichert (' + (e.message || 'offline') + ') – neuer Versuch folgt');
+    clearTimeout(syncState.retryTimer); syncState.retryTimer = setTimeout(() => { if(syncState.dirty) syncPush(); }, 10000);
+  }finally{ syncState.busy = false; }
+}
+async function enableSync(){
+  sync.enabled = true; saveSyncSettings();
+  const j = await syncPull(true);
+  if(!j){ sync.enabled = false; saveSyncSettings(); alert('Keine Verbindung zum Server. Bitte Server-Adresse prüfen.'); setSyncStatus('off'); return; }
+  if(j.data){
+    const hasLocal = Object.keys(state.days).length > 0 || state.absences.length > 0;
+    if(hasLocal && !confirm('Auf dem Server ist bereits ein Plan vorhanden.\n\nOK = Plan vom Server übernehmen (die Daten in diesem Browser werden ersetzt)\nAbbrechen = den Plan aus diesem Browser auf den Server hochladen')){
+      syncState.rev = j.rev; schedulePush();
+    } else applyRemote(j);
+  } else { syncState.rev = 0; schedulePush(); }
+  setSyncStatus(syncState.status === 'off' ? 'ok' : syncState.status);
+  render();
+}
+function disableSync(){ sync.enabled = false; saveSyncSettings(); syncState.dirty = false; clearTimeout(syncState.pushTimer); setSyncStatus('off'); render(); }
+setInterval(() => { if(document.visibilityState === 'visible') syncPull(false); }, 15000);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') syncPull(false); });
+window.addEventListener('online', () => { if(syncState.dirty) syncPush(); else syncPull(false); });
+
 /* ---------- Ereignisse ---------- */
 document.getElementById('nav').addEventListener('click', e => {
   const b = e.target.closest('button[data-view]'); if(!b) return;
@@ -1121,7 +1231,16 @@ document.getElementById('app').addEventListener('click', e => {
     case 'tour-del': { const t = tourById(id); if(t && confirm('Tour «' + t.name + '» wirklich löschen?')){ state.tours = state.tours.filter(x => x.id !== id); for(const iso in state.days){ (state.days[iso].extra || []).forEach(x => { if(x.tourId === id) x.tourId = ''; }); } commit(); } break; }
     case 'export': exportJSON(); break;
     case 'import': document.getElementById('importFile').click(); break;
-    case 'reset': if(confirm('Wirklich ALLE Daten (Mitarbeitende, Touren, Pläne, Abwesenheiten) zurücksetzen?\nDies kann nicht rückgängig gemacht werden.') && confirm('Letzte Bestätigung: Alle Daten werden gelöscht. Vorher eine Sicherung exportiert?')){ state = normalize(defaultState()); applyTheme(); commit(); } break;
+    case 'sync-on': { sync.url = document.getElementById('syncUrl').value.trim(); sync.password = document.getElementById('syncPw').value; saveSyncSettings(); enableSync(); break; }
+    case 'sync-off': disableSync(); break;
+    case 'sync-now': { sync.url = document.getElementById('syncUrl').value.trim(); sync.password = document.getElementById('syncPw').value; saveSyncSettings(); if(syncState.dirty) syncPush(); else syncPull(true).then(() => render()); break; }
+    case 'sync-test': {
+      const base = document.getElementById('syncUrl').value.trim().replace(/\/+$/, '');
+      const st = document.getElementById('syncStatusText'); st.textContent = 'Prüfe Verbindung …';
+      fetch(base + '/api/plan', {cache:'no-store'}).then(async r => { if(!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); st.textContent = 'Verbindung OK. ' + (j.data ? 'Auf dem Server liegt ein Plan (Stand Nr. ' + j.rev + ').' : 'Auf dem Server liegt noch kein Plan.'); }).catch(e => { st.textContent = 'Keine Verbindung: ' + e.message + '. Stimmt die Server-Adresse? Läuft die Seite auf Vercel, kann das Feld leer bleiben.'; });
+      break;
+    }
+    case 'reset': if(confirm('Wirklich ALLE Daten (Mitarbeitende, Touren, Pläne, Abwesenheiten) zurücksetzen?\nDies kann nicht rückgängig gemacht werden.') && confirm('Letzte Bestätigung: Alle Daten werden gelöscht' + (sync.enabled ? ' – auch auf dem Server für alle Geräte' : '') + '. Vorher eine Sicherung exportiert?')){ state = normalize(defaultState()); applyTheme(); commit(); } break;
   }
 });
 
@@ -1151,6 +1270,7 @@ document.getElementById('app').addEventListener('change', e => {
     case 'emp-hours': { const emp = empById(id); if(emp) emp.hours = el.checked; commit(false); break; }
     case 'set-driveEnd': if(val) state.settings.driveEnd = val; commit(false); break;
     case 'set-soloStart': if(val) state.settings.soloStart = val; commit(false); break;
+    case 'sync-field': break;
     case 'set-code': { const k = el.dataset.key; if(val.trim()) state.settings.codes[k] = val.trim().slice(0,3); else el.value = state.settings.codes[k]; commit(false); break; }
     case 'emp-pensum': { const emp = empById(id); if(emp) emp.pensum = val === '' ? null : Math.max(0, Number(val)); commit(false); break; }
     case 'set-countStart': if(val) state.settings.countStart = val; commit(false); break;
@@ -1164,6 +1284,7 @@ document.getElementById('app').addEventListener('change', e => {
 /* ---------- Start ---------- */
 applyTheme();
 render();
+if(sync.enabled){ setSyncStatus('busy', 'Lade …'); syncPull(true); }
 </script>
 </body>
 </html>

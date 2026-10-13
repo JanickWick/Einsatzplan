@@ -29,6 +29,16 @@ Browser, in dem man die Datei geöffnet hat. Sie werden nicht automatisch zwisch
 Achtung: Wird der Browser-Verlauf/Website-Daten gelöscht oder ein anderer Browser verwendet,
 sind die Daten dort nicht vorhanden – dann die letzte JSON-Sicherung importieren.
 
+## Online-Synchronisation (Vercel)
+
+Mit der Online-Synchronisation sehen alle Geräte denselben Plan. Dafür läuft die App auf Vercel, der Plan liegt in Vercel Blob.
+
+1. Auf Vercel ein Projekt aus diesem Repository anlegen, unter «Storage» einen Blob-Speicher verbinden und unter «Settings → Environment Variables» `PLAN_PASSWORD` setzen.
+2. Die Vercel-Adresse der App öffnen, in den Einstellungen unter «Online-Synchronisation» das Passwort eintragen und «Einschalten».
+3. Auf jedem weiteren Gerät dasselbe tun. Lesen geht ohne Passwort, Speichern nur mit.
+
+Der Server-Teil liegt in `api/plan.js`. Jeder Speichervorgang legt eine neue Version an, die letzten 30 bleiben als Verlauf erhalten. Speichern zwei Personen gleichzeitig, gewinnt die erste; die zweite erhält den neuen Stand und einen Hinweis.
+
 ## Funktionen
 
 - Übersicht: **Monatsplan** mit einer Zeile pro Person und einer Spalte pro Tag, Kalenderwochen als Trenner, Kürzel farbig nach Art: A = Abzählen (schliesst Fahren ein), F = Fahren (Tour steht klein darunter), X = Frei, K = Krank, Fe = Ferien, An = Andere. Kürzel in den Einstellungen änderbar. Rechts die Anzahl Tage und Stunden, unten offene Plätze. Monatsnavigation, Druck als PDF (Querformat) und farbiger Excel-Export.
