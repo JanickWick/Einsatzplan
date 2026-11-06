@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Einsatzplan Spedition</title>
+<title>Einsatzplan</title>
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#2563eb">
 <link rel="manifest" href="manifest.webmanifest">
@@ -71,6 +71,11 @@ header nav button{border:none;background:transparent;padding:6px 10px;border-rad
 header nav button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
 header .hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
 main{padding:16px;max-width:1500px;margin:0 auto}
+.depts{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:10px 16px 0;max-width:1500px;margin:0 auto;scrollbar-width:none}
+.depts::-webkit-scrollbar{display:none}
+.depts .dept{border-radius:999px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--surface);border:1px solid var(--border)}
+.depts .dept.active{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+@media print{.depts{display:none!important}}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:14px}
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
 .toolbar .right{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -281,7 +286,7 @@ table.plan td.total{white-space:nowrap}
 </head>
 <body>
 <header>
-  <div class="brand">🚐 Einsatzplan Spedition</div>
+  <div class="brand">🗓️ Einsatzplan</div>
   <nav id="nav">
     <button data-view="week">Wochenplan</button>
     <button data-view="plan">Übersicht</button>
@@ -295,6 +300,7 @@ table.plan td.total{white-space:nowrap}
     <button id="themeBtn" title="Hell-/Dunkelmodus umschalten"></button>
   </div>
 </header>
+<div id="depts" class="depts"></div>
 <main id="app"></main>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 
@@ -308,6 +314,11 @@ const WD = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 const WD_LONG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
 const ABS_TYPES = {ferien:'Ferien', krank:'Krank', frei:'Frei', andere:'Andere'};
 const GROUPS = {spedition:'Spedition', aushilfe:'Aushilfe'};
+const DEFAULT_NAMES = {shift1:'Abzählen', shift2:'Fahren', tour:'Tour', group1:'Spedition'};
+const N1 = () => state.settings.names.shift1;   // Name Schichtart 1 (Plätze, feste Zeit)
+const N2 = () => state.settings.names.shift2;   // Name Schichtart 2 (Einträge, Ende offen)
+const NT = () => state.settings.names.tour;     // Name der Auswahl beim Eintrag (z.B. Tour)
+const groupLabel = g => g === 'spedition' ? state.settings.names.group1 : GROUPS[g];
 const HUES = [{h:210,n:'Blau'},{h:150,n:'Grün'},{h:28,n:'Orange'},{h:275,n:'Violett'},{h:0,n:'Rot'},{h:188,n:'Türkis'},{h:48,n:'Gelb'},{h:325,n:'Pink'},{h:95,n:'Lindgrün'},{h:245,n:'Indigo'},{h:15,n:'Terrakotta'},{h:168,n:'Mint'}];
 const nextHue = () => HUES[state.employees.length % HUES.length].h;
 
@@ -339,7 +350,7 @@ function defaultState(){
   return {
     version: 1,
     theme: 'auto',
-    settings: { countStart:'02:00', countEnd:'11:00', driveStart:'04:30', soloStart:'04:30', driveEnd:'12:00', countSlots:[2,2,2,2,2,2,1], codes:{count:'A', drive:'F', frei:'X', krank:'K', ferien:'Fe', andere:'An'} },
+    settings: { countStart:'02:00', countEnd:'11:00', driveStart:'04:30', soloStart:'04:30', driveEnd:'12:00', countSlots:[2,2,2,2,2,2,1], codes:{count:'A', drive:'F', frei:'X', krank:'K', ferien:'Fe', andere:'An'}, names:Object.assign({}, DEFAULT_NAMES) },
     employees: [
       {id:'e1', name:'Salvatore', group:'spedition', pensum:null, hours:true},
       {id:'e2', name:'Riza',      group:'spedition', pensum:null, hours:true},
@@ -368,6 +379,8 @@ function normalize(obj){
   if(!Array.isArray(s.settings.countSlots) || s.settings.countSlots.length !== 7) s.settings.countSlots = d.settings.countSlots;
   s.settings.countSlots = s.settings.countSlots.map(n => Math.max(0, parseInt(n,10) || 0));
   s.settings.codes = Object.assign({}, d.settings.codes, (obj && obj.settings && obj.settings.codes) || {});
+  s.settings.names = Object.assign({}, DEFAULT_NAMES, (obj && obj.settings && obj.settings.names) || {});
+  for(const k in s.settings.names){ if(!String(s.settings.names[k]).trim()) s.settings.names[k] = DEFAULT_NAMES[k]; }
   s.employees = (Array.isArray(s.employees) ? s.employees : []).map((e, i) => ({id:e.id||uid(), name:String(e.name||''), group: e.group==='aushilfe'?'aushilfe':'spedition', pensum: e.pensum==null||e.pensum===''? null : Number(e.pensum), hours: typeof e.hours === 'boolean' ? e.hours : e.group !== 'aushilfe', hue: Number.isFinite(Number(e.hue)) && e.hue !== null && e.hue !== '' ? Number(e.hue) : HUES[i % HUES.length].h}));
   s.vans = (Array.isArray(s.vans) ? s.vans : []).map(v => ({id:v.id||uid(), name:String(v.name||''), plate:String(v.plate||'')}));
   s.tours = (Array.isArray(s.tours) ? s.tours : []).map(t => ({id:t.id||uid(), name:String(t.name||''), days:(Array.isArray(t.days)&&t.days.length===7)?t.days.map(x=>x?1:0):[1,1,1,1,1,1,0], approxEnd:t.approxEnd||'12:00', vanId:t.vanId||null}));
@@ -382,17 +395,57 @@ function normalize(obj){
   return s;
 }
 
+/* ---------- Abteilungen ---------- */
+const APP_KEY = 'einsatzplan-app-v2';
+const DEFAULT_DEPTS = ['Spedition', 'Bäckerei', 'Traiteur', 'Konditorei'];
+// Leerer Plan für eine weitere Abteilung (Namen und Zeiten in den Einstellungen anpassbar)
+function deptDefaultState(name){
+  const d = defaultState();
+  if(name === 'Spedition') return d;
+  d.employees = []; d.tours = [];
+  d.settings.countStart = '05:00'; d.settings.countEnd = '14:00'; d.settings.soloStart = '13:00'; d.settings.driveEnd = '22:00';
+  d.settings.codes = {count:'F', drive:'S', frei:'X', krank:'K', ferien:'Fe', andere:'An'};
+  d.settings.names = {shift1:'Frühschicht', shift2:'Spätschicht', tour:'Bereich', group1:'Fest'};
+  return d;
+}
+function defaultStore(){
+  return {version:2, theme:'auto', current:'d1', departments: DEFAULT_DEPTS.map((n, i) => ({id:'d' + (i+1), name:n, state: normalize(deptDefaultState(n))}))};
+}
+// Nimmt sowohl das neue Format (departments) als auch eine alte Einzel-Sicherung (employees/settings) entgegen
+function normalizeStore(obj){
+  if(!obj || typeof obj !== 'object') return defaultStore();
+  if(Array.isArray(obj.departments)){
+    const st = {version:2, theme: ['auto','light','dark'].includes(obj.theme) ? obj.theme : 'auto', current: obj.current, departments: []};
+    obj.departments.forEach((d, i) => { if(d && typeof d === 'object') st.departments.push({id: d.id || 'd' + (i+1), name: String(d.name || 'Abteilung ' + (i+1)), state: normalize(d.state || {})}); });
+    if(!st.departments.length) st.departments = defaultStore().departments;
+    if(!st.departments.some(d => d.id === st.current)) st.current = st.departments[0].id;
+    return st;
+  }
+  if(Array.isArray(obj.employees) && obj.settings){
+    const st = defaultStore();
+    st.departments[0].state = normalize(obj);
+    st.theme = ['auto','light','dark'].includes(obj.theme) ? obj.theme : 'auto';
+    return st;
+  }
+  return defaultStore();
+}
+function curDept(){ return store.departments.find(d => d.id === store.current) || store.departments[0]; }
+function deptName(){ return curDept().name; }
+function selectDept(id){ if(!store.departments.some(d => d.id === id)) return; store.current = id; state = curDept().state; save(false); render(); window.scrollTo(0,0); }
+
 /* ---------- Speichern / Laden ---------- */
 function load(){
   try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw) return normalize(JSON.parse(raw));
+    const raw = localStorage.getItem(APP_KEY);
+    if(raw) return normalizeStore(JSON.parse(raw));
+    const old = localStorage.getItem(LS_KEY); // Übernahme aus der Version mit nur einer Abteilung
+    if(old) return normalizeStore(JSON.parse(old));
   }catch(e){ console.warn('Laden fehlgeschlagen', e); }
-  return normalize(defaultState());
+  return defaultStore();
 }
 function save(pushRemote = true){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    localStorage.setItem(APP_KEY, JSON.stringify(store));
     const n = new Date();
     document.getElementById('saveinfo').textContent = 'Gespeichert ' + pad(n.getHours()) + ':' + pad(n.getMinutes());
     if(pushRemote && typeof schedulePush === 'function') schedulePush();
@@ -403,7 +456,8 @@ function save(pushRemote = true){
 }
 
 /* ---------- Zustand ---------- */
-let state = load();
+let store = load();
+let state = curDept().state;
 let view = 'week';
 let weekStart = mondayOf(new Date());
 let showIssues = false;
@@ -415,7 +469,7 @@ const empName  = id => (empById(id) || {}).name || '?';
 function dayRO(iso){ return state.days[iso] || {count:[], tours:{}, extra:[]}; }
 function dayRW(iso){ if(!state.days[iso]) state.days[iso] = {count:[], tours:{}, extra:[]}; const d = state.days[iso]; if(!d.extra) d.extra = []; return d; }
 function extraEnd(x){ const t = x.tourId ? tourById(x.tourId) : null; return x.actualEnd || (t ? t.approxEnd : state.settings.driveEnd); }
-function extraLabel(x){ const t = x.tourId ? tourById(x.tourId) : null; return t ? t.name : 'Fahren'; }
+function extraLabel(x){ const t = x.tourId ? tourById(x.tourId) : null; return t ? t.name : N2(); }
 function slotCount(iso, wd){ return Math.max(state.settings.countSlots[wd], dayRO(iso).count.length); }
 function absenceFor(empId, iso){ return state.absences.find(a => a.empId === empId && a.from <= iso && a.to >= iso) || null; }
 
@@ -429,12 +483,12 @@ function interval(startT, endT){
 function personDayAssignments(empId, iso){
   const d = dayRO(iso), S = state.settings, out = [];
   if(d.count.includes(empId)){
-    out.push({kind:'count', label:'Abzählen', short:'Abzählen', start:S.countStart, end:S.countEnd, approx:false});
+    out.push({kind:'count', label:N1(), short:N1(), start:S.countStart, end:S.countEnd, approx:false});
   }
   for(const x of (d.extra || [])){
     if(x.empId === empId){
       const t = x.tourId ? tourById(x.tourId) : null;
-      out.push({kind:'drive', label:'Fahren' + (t ? ' ' + t.name : ''), short:extraLabel(x), start:S.soloStart, end:extraEnd(x), approx:!x.actualEnd, tour:t});
+      out.push({kind:'drive', label:N2() + (t ? ' ' + t.name : ''), short:extraLabel(x), start:S.soloStart, end:extraEnd(x), approx:!x.actualEnd, tour:t});
     }
   }
   return out;
@@ -462,7 +516,7 @@ function computeIssues(dates){
     for(const id in seen){
       if(seen[id].length > 1){
         seen[id].forEach(i => mark('count:'+iso+':'+i, 'error'));
-        issues.push({sev:'error', iso, text: lbl + ': ' + empName(id) + ' ist zweimal beim Abzählen eingeteilt.'});
+        issues.push({sev:'error', iso, text: lbl + ': ' + empName(id) + ' ist zweimal bei «' + N1() + '» eingeteilt.'});
       }
     }
     // abwesend, aber eingeteilt (Abzählen)
@@ -470,20 +524,20 @@ function computeIssues(dates){
     day.count.forEach((id, i) => {
       if(!id) return;
       const a = absenceFor(id, iso);
-      if(a){ mark('count:'+iso+':'+i, 'error'); if(!absReported.has(id)){ absReported.add(id); issues.push({sev:'error', iso, text: lbl + ': ' + empName(id) + ' ist beim Abzählen eingeteilt, aber abwesend (' + ABS_TYPES[a.type] + ').'}); } }
+      if(a){ mark('count:'+iso+':'+i, 'error'); if(!absReported.has(id)){ absReported.add(id); issues.push({sev:'error', iso, text: lbl + ': ' + empName(id) + ' ist bei «' + N1() + '» eingeteilt, aber abwesend (' + ABS_TYPES[a.type] + ').'}); } }
     });
     // Fahren: abwesend / mehrfach
     const drvUse = {};
     (day.extra || []).forEach((x, i) => {
       if(!x.empId) return;
       const a = absenceFor(x.empId, iso);
-      if(a){ mark('x:'+iso+':'+i, 'error'); issues.push({sev:'error', iso, text: lbl + ': ' + empName(x.empId) + ' ist zum Fahren eingeteilt, ist aber abwesend (' + ABS_TYPES[a.type] + ').'}); }
+      if(a){ mark('x:'+iso+':'+i, 'error'); issues.push({sev:'error', iso, text: lbl + ': ' + empName(x.empId) + ' ist bei «' + N2() + '» eingeteilt, ist aber abwesend (' + ABS_TYPES[a.type] + ').'}); }
       (drvUse[x.empId] = drvUse[x.empId] || []).push({key:'x:'+iso+':'+i, name:extraLabel(x)});
     });
     for(const id in drvUse){
       if(drvUse[id].length > 1){
         drvUse[id].forEach(u => mark(u.key, 'hint'));
-        issues.push({sev:'hint', iso, text: lbl + ': ' + empName(id) + ' ist mehrfach zum Fahren eingeteilt (' + drvUse[id].map(u => u.name).join(', ') + ').'});
+        issues.push({sev:'hint', iso, text: lbl + ': ' + empName(id) + ' ist mehrfach bei «' + N2() + '» eingeteilt (' + drvUse[id].map(u => u.name).join(', ') + ').'});
       }
     }
   }
@@ -496,7 +550,7 @@ function empOptions(value, iso, withDrive){
   for(const g of ['spedition','aushilfe']){
     const list = state.employees.filter(e => e.group === g);
     if(!list.length) continue;
-    html += '<optgroup label="' + (withDrive ? 'Abzählen: ' : '') + GROUPS[g] + '">';
+    html += '<optgroup label="' + (withDrive ? esc(N1()) + ': ' : '') + esc(groupLabel(g)) + '">';
     for(const e of list){
       const a = iso ? absenceFor(e.id, iso) : null;
       html += '<option value="' + esc(e.id) + '"' + (e.id === value ? ' selected' : '') + '>' + esc(e.name) + (a ? ' (' + ABS_TYPES[a.type] + ')' : '') + '</option>';
@@ -504,10 +558,10 @@ function empOptions(value, iso, withDrive){
     html += '</optgroup>';
   }
   if(withDrive && state.employees.length){
-    html += '<optgroup label="Fahren (ab ' + esc(state.settings.soloStart) + ' bis fertig)">';
+    html += '<optgroup label="' + esc(N2()) + ' (ab ' + esc(state.settings.soloStart) + ' bis fertig)">';
     for(const e of state.employees){
       const a = iso ? absenceFor(e.id, iso) : null;
-      html += '<option value="drive:' + esc(e.id) + '">' + esc(e.name) + ' – Fahren' + (a ? ' (' + ABS_TYPES[a.type] + ')' : '') + '</option>';
+      html += '<option value="drive:' + esc(e.id) + '">' + esc(e.name) + ' – ' + esc(N2()) + (a ? ' (' + ABS_TYPES[a.type] + ')' : '') + '</option>';
     }
     html += '</optgroup>';
   }
@@ -564,14 +618,14 @@ function countCellHTML(d, marks){
     const m = marks['count:'+iso+':'+i];
     const cls = m === 'error' ? 'error' : (!val ? 'empty' : '');
     const removable = i >= def && !val && i === n-1;
-    html += '<div class="slot ' + cls + (val && empById(val) ? ' filled" style="--h:' + empById(val).hue : '') + '"><select data-act="count" data-date="' + iso + '" data-idx="' + i + '" data-fk="c' + iso + i + '" title="Platz ' + (i+1) + ': Abzählen (oder Fahren wählen)">' + empOptions(val, iso, true) + '</select>' +
+    html += '<div class="slot ' + cls + (val && empById(val) ? ' filled" style="--h:' + empById(val).hue : '') + '"><select data-act="count" data-date="' + iso + '" data-idx="' + i + '" data-fk="c' + iso + i + '" title="Platz ' + (i+1) + '">' + empOptions(val, iso, true) + '</select>' +
       (removable ? '<button class="icon" data-act="rmslot" data-date="' + iso + '" title="Zusätzlichen Platz entfernen">×</button>' : '') + '</div>';
   }
-  html += '<button class="addslot" data-act="addslot" data-date="' + iso + '" title="Zusätzlichen Abzähl-Platz hinzufügen">+ Platz</button>';
+  html += '<button class="addslot" data-act="addslot" data-date="' + iso + '" title="Zusätzlichen Platz hinzufügen">+ Platz</button>';
   return html;
 }
 function tourOptions(value){
-  return '<option value="">– Tour wählen –</option>' + state.tours.map(t => '<option value="' + t.id + '"' + (t.id === value ? ' selected' : '') + '>' + esc(t.name) + '</option>').join('');
+  return '<option value="">– ' + esc(NT()) + ' wählen –</option>' + state.tours.map(t => '<option value="' + t.id + '"' + (t.id === value ? ' selected' : '') + '>' + esc(t.name) + '</option>').join('');
 }
 function driveCellHTML(d, marks){
   const iso = toISO(d), ex = dayRO(iso).extra || [];
@@ -585,7 +639,7 @@ function driveCellHTML(d, marks){
       '<div class="slot tour"><span class="tag">Tour</span><select data-act="x-tour" data-date="' + iso + '" data-idx="' + i + '" data-fk="xt' + iso + i + '">' + tourOptions(x.tourId) + '</select></div>' +
       '<div class="endrow"><span>Ende</span><input type="time" data-act="x-end" data-date="' + iso + '" data-idx="' + i + '" data-fk="xn' + iso + i + '" value="' + esc(x.actualEnd || '') + '">' + (x.actualEnd ? '' : '<span>ca. ' + esc(extraEnd(x)) + '</span>') + '</div></div>';
   });
-  html += '<button class="addslot" data-act="addextra" data-date="' + iso + '" title="Person zum Fahren einteilen">+ Fahren</button>';
+  html += '<button class="addslot" data-act="addextra" data-date="' + iso + '" title="Person einteilen">+ ' + esc(N2()) + '</button>';
   return html;
 }
 
@@ -610,18 +664,18 @@ function renderWeek(){
     html += dayStripHTML(dates, info);
     html += '<div class="mdaytitle"><strong>' + WD_LONG[i] + ', ' + fmtDate(d) + '</strong>' + (iso === todayISO ? ' <span class="badge ok" style="cursor:default">Heute</span>' : '') +
       (info[i].open ? '<span class="muted small">' + info[i].open + (info[i].open === 1 ? ' Platz offen' : ' Plätze offen') + '</span>' : '<span class="muted small">alles besetzt</span>') + '</div>';
-    html += '<div class="card mcard"><h3>Abzählen<span class="sub">' + countSub + '</span></h3>' + countCellHTML(d, marks) + '</div>';
-    html += '<div class="card mcard"><h3>Fahren<span class="sub">' + driveSub + '</span></h3>' + driveCellHTML(d, marks) + '</div>';
+    html += '<div class="card mcard"><h3>' + esc(N1()) + '<span class="sub">' + countSub + '</span></h3>' + countCellHTML(d, marks) + '</div>';
+    html += '<div class="card mcard"><h3>' + esc(N2()) + '<span class="sub">' + driveSub + '</span></h3>' + driveCellHTML(d, marks) + '</div>';
     return html + legend;
   }
 
   html += '<div class="table-wrap"><table class="week"><thead><tr><th></th>';
   for(const d of dates){ const iso = toISO(d); html += '<th class="' + (iso === todayISO ? 'today' : '') + '">' + WD_LONG[wdIdx(d)] + '<br><span class="muted small">' + fmtDate(d) + '</span></th>'; }
   html += '</tr></thead><tbody>';
-  html += '<tr class="section"><td class="rowlabel">Abzählen<span class="sub">' + countSub + '</span></td>';
+  html += '<tr class="section"><td class="rowlabel">' + esc(N1()) + '<span class="sub">' + countSub + '</span></td>';
   for(const d of dates) html += '<td class="' + (toISO(d) === todayISO ? 'today' : '') + '">' + countCellHTML(d, marks) + '</td>';
   html += '</tr>';
-  html += '<tr class="section"><td class="rowlabel">Fahren<span class="sub">' + driveSub + '</span>' + (state.tours.length ? '' : '<span class="sub">Touren in den Einstellungen anlegen</span>') + '</td>';
+  html += '<tr class="section"><td class="rowlabel">' + esc(N2()) + '<span class="sub">' + driveSub + '</span>' + (state.tours.length ? '' : '<span class="sub">«' + esc(NT()) + '» in den Einstellungen anlegen</span>') + '</td>';
   for(const d of dates) html += '<td class="' + (toISO(d) === todayISO ? 'today' : '') + '">' + driveCellHTML(d, marks) + '</td>';
   html += '</tr>';
   html += '</tbody></table></div>' + legend;
@@ -636,11 +690,11 @@ function monthDates(m){ const out = []; for(let d = new Date(m); d.getMonth() ==
 // Kürzel und Beschreibung für eine Person an einem Tag
 function dayCode(e, iso){
   const C = state.settings.codes, S = state.settings, d = dayRO(iso), parts = [], titles = [];
-  if(d.count.includes(e.id)){ parts.push({k:'count', t:C.count}); titles.push('Abzählen ' + S.countStart + '–' + S.countEnd); }
+  if(d.count.includes(e.id)){ parts.push({k:'count', t:C.count}); titles.push(N1() + ' ' + S.countStart + '–' + S.countEnd); }
   const drives = (d.extra || []).filter(x => x.empId === e.id);
   if(drives.length){
     if(!d.count.includes(e.id)) parts.push({k:'drive', t:C.drive}); // wer abzählt, fährt automatisch: nur A
-    drives.forEach(x => { const t = x.tourId ? tourById(x.tourId) : null; titles.push('Fahren' + (t ? ' ' + t.name : '') + ' ' + S.soloStart + '–' + (x.actualEnd || 'ca. ' + extraEnd(x))); });
+    drives.forEach(x => { const t = x.tourId ? tourById(x.tourId) : null; titles.push(N2() + (t ? ' ' + t.name : '') + ' ' + S.soloStart + '–' + (x.actualEnd || 'ca. ' + extraEnd(x))); });
   }
   const a = absenceFor(e.id, iso);
   if(a){ parts.push({k:a.type, t:C[a.type]}); titles.push(ABS_TYPES[a.type] + (a.note ? ' – ' + a.note : '')); }
@@ -661,7 +715,7 @@ function monthHeadHTML(dates, todayISO){
     const wd = wdIdx(d), iso = toISO(d);
     dayRow += '<th class="' + (wd >= 5 ? 'we ' : '') + (wd === 0 ? 'wk-start ' : '') + (iso === todayISO ? 'today' : '') + '"><span class="wdl">' + WD[wd] + '</span><br>' + d.getDate() + '</th>';
   }
-  return kwRow + '<th class="kw" colspan="3"></th></tr>' + dayRow + '<th class="tot" title="Tage Abzählen">' + esc(state.settings.codes.count) + '</th><th class="tot" title="Tage Fahren">' + esc(state.settings.codes.drive) + '</th><th class="tot">Std</th></tr>';
+  return kwRow + '<th class="kw" colspan="3"></th></tr>' + dayRow + '<th class="tot" title="Tage ' + esc(N1()) + '">' + esc(state.settings.codes.count) + '</th><th class="tot" title="Tage ' + esc(N2()) + '">' + esc(state.settings.codes.drive) + '</th><th class="tot">Std</th></tr>';
 }
 function renderPlan(){
   const m = curMonth(), dates = monthDates(m), todayISO = toISO(new Date()), S = state.settings, C = S.codes;
@@ -675,7 +729,7 @@ function renderPlan(){
     '<span class="weeklabel"><strong>' + MONTHS[m.getMonth()] + ' ' + m.getFullYear() + '</strong></span></div><div class="right">';
   if(nErr) html += '<span class="badge err" data-act="gotoweek">' + nErr + (nErr === 1 ? ' Konflikt' : ' Konflikte') + '</span>';
   html += '<button data-act="print">Drucken / PDF</button><button data-act="xlsxmonth">Excel exportieren</button><button data-act="gotoweek">Bearbeiten (Wochenplan)</button></div></div>';
-  html += '<div class="card plan"><div class="plan-title"><h1>Einsatzplan Spedition</h1><span class="kw">' + MONTHS[m.getMonth()] + ' ' + m.getFullYear() + '</span></div>';
+  html += '<div class="card plan"><div class="plan-title"><h1>Einsatzplan ' + esc(deptName()) + '</h1><span class="kw">' + MONTHS[m.getMonth()] + ' ' + m.getFullYear() + '</span></div>';
   html += '<div class="table-wrap"><table class="month"><thead>' + monthHeadHTML(dates, todayISO) + '</thead><tbody>';
   for(const e of state.employees){
     let nA = 0, nF = 0, min = 0, cells = '';
@@ -704,8 +758,8 @@ function renderPlan(){
   html += '</tbody></table></div>';
   const LG = (cls, code, label) => '<span class="lgi"><span class="mc ' + cls + ' lg">' + esc(code) + '</span> ' + label + '</span>';
   html += '<div class="plan-legend">' +
-    LG('k-count', C.count, 'Abzählen') +
-    LG('k-drive', C.drive, 'Fahren') +
+    LG('k-count', C.count, esc(N1())) +
+    LG('k-drive', C.drive, esc(N2())) +
     LG('k-frei', C.frei, 'Frei') + LG('k-krank', C.krank, 'Krank') + LG('k-ferien', C.ferien, 'Ferien') + LG('k-andere', C.andere, 'Andere') +
     (anyOpen ? LG('k-open', '2', 'offene Plätze') : '') +
     '</div></div>';
@@ -713,7 +767,7 @@ function renderPlan(){
 }
 function monthToSheets(m){
   const dates = monthDates(m), S = state.settings, C = S.codes, T = (v, st) => ({v, st});
-  const title = 'Einsatzplan ' + MONTHS[m.getMonth()] + ' ' + m.getFullYear();
+  const title = 'Einsatzplan ' + deptName() + ' – ' + MONTHS[m.getMonth()] + ' ' + m.getFullYear();
   const n = dates.length, lastCol = colLetter(n + 3);
   // Kalenderwochen-Zeile mit Verbund je Woche
   const kwRow = [T('', 'headL')], merges = ['A1:' + lastCol + '1'];
@@ -742,8 +796,8 @@ function monthToSheets(m){
     rows.push([T(e.name, 'name'), ...cells, T(nA || '', 'num'), T(nF || '', 'num'), T(e.hours && min ? Math.round(min/6)/10 : '', 'num')]);
   }
   rows.push([]);
-  rows.push([T('Legende', 'bold'), T(C.count, 'count'), T('Abzählen')]);
-  rows.push(['', T(C.drive, 'drive'), T('Fahren (Tour steht in der Zelle)')]);
+  rows.push([T('Legende', 'bold'), T(C.count, 'count'), T(N1())]);
+  rows.push(['', T(C.drive, 'drive'), T(N2() + ' (' + NT() + ' steht in der Zelle)')]);
   rows.push(['', T(C.frei, 'frei'), T('Frei')]);
   rows.push(['', T(C.krank, 'krank'), T('Krank')]);
   rows.push(['', T(C.ferien, 'ferien'), T('Ferien')]);
@@ -752,7 +806,7 @@ function monthToSheets(m){
 }
 function exportXlsxMonth(){
   const m = curMonth();
-  downloadBlob(buildXlsx(monthToSheets(m)), 'Einsatzplan_' + m.getFullYear() + '-' + pad(m.getMonth() + 1) + '.xlsx');
+  downloadBlob(buildXlsx(monthToSheets(m)), 'Einsatzplan_' + safeName(deptName()) + '_' + m.getFullYear() + '-' + pad(m.getMonth() + 1) + '.xlsx');
 }
 
 /* ---------- Ansicht: Personalübersicht ---------- */
@@ -781,7 +835,7 @@ function renderStaff(){
     } else {
       bar = '<div class="small muted">' + fmtH(total) + ' geplant (kein Pensum hinterlegt)</div><div class="bar"><div style="width:' + Math.min(100, hours/42*100).toFixed(1) + '%;opacity:.4"></div></div>';
     }
-    html += '<div class="card person"><h3>' + esc(e.name) + '<span class="grp">' + GROUPS[e.group] + '</span></h3>' + bar +
+    html += '<div class="card person"><h3>' + esc(e.name) + '<span class="grp">' + esc(groupLabel(e.group)) + '</span></h3>' + bar +
       (rows ? '<ul class="daylist">' + rows + '</ul>' : '<p class="muted small">Keine Einsätze in dieser Woche.</p>') + '</div>';
   }
   return html + '</div>';
@@ -815,39 +869,50 @@ function renderAbsences(){
 function renderSettings(){
   const S = state.settings;
   let html = '';
+  // Abteilungen
+  html += '<div class="card"><h2>Abteilungen</h2><p class="muted small">Jede Abteilung hat eigene Mitarbeitende, Schichten, Pläne und Abwesenheiten. Oben über die Reiter wechseln. Die Einstellungen unten gelten für die Abteilung «' + esc(deptName()) + '».</p><div class="table-wrap"><table class="settings"><thead><tr><th>Name</th><th>Mitarbeitende</th><th></th></tr></thead><tbody>' +
+    store.departments.map(d => '<tr' + (d.id === store.current ? ' style="font-weight:600"' : '') + '><td><input type="text" value="' + esc(d.name) + '" data-act="dept-name" data-id="' + d.id + '"></td><td>' + d.state.employees.length + '</td><td><button class="icon danger" data-act="dept-del" data-id="' + d.id + '">Löschen</button></td></tr>').join('') +
+    '<tr><td><input type="text" id="newDeptName" placeholder="Neue Abteilung"></td><td></td><td><button class="primary" data-act="dept-add">Hinzufügen</button></td></tr></tbody></table></div></div>';
   // Mitarbeitende
-  html += '<div class="card"><h2>Mitarbeitende</h2><div class="table-wrap"><table class="settings"><thead><tr><th>Name</th><th>Gruppe</th><th>Pensum (h/Woche)</th><th>Stunden</th><th>Farbe</th><th></th></tr></thead><tbody>';
+  html += '<div class="card"><h2>Mitarbeitende (' + esc(deptName()) + ')</h2><div class="table-wrap"><table class="settings"><thead><tr><th>Name</th><th>Gruppe</th><th>Pensum (h/Woche)</th><th>Stunden</th><th>Farbe</th><th></th></tr></thead><tbody>';
   for(const e of state.employees){
     html += '<tr><td><input type="text" value="' + esc(e.name) + '" data-act="emp-name" data-id="' + e.id + '"></td>' +
-      '<td><select data-act="emp-group" data-id="' + e.id + '">' + Object.entries(GROUPS).map(([k,v]) => '<option value="' + k + '"' + (e.group === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></td>' +
+      '<td><select data-act="emp-group" data-id="' + e.id + '">' + Object.keys(GROUPS).map(k => '<option value="' + k + '"' + (e.group === k ? ' selected' : '') + '>' + esc(groupLabel(k)) + '</option>').join('') + '</select></td>' +
       '<td><input type="number" min="0" step="0.5" value="' + (e.pensum ?? '') + '" placeholder="–" data-act="emp-pensum" data-id="' + e.id + '"></td>' +
       '<td><label title="Stunden in der Personalübersicht anzeigen"><input type="checkbox" data-act="emp-hours" data-id="' + e.id + '"' + (e.hours ? ' checked' : '') + '> anzeigen</label></td>' +
       '<td><span class="dot" style="--h:' + e.hue + '"></span><select data-act="emp-hue" data-id="' + e.id + '">' + HUES.map(h => '<option value="' + h.h + '"' + (h.h === e.hue ? ' selected' : '') + '>' + h.n + '</option>').join('') + (HUES.some(h => h.h === e.hue) ? '' : '<option value="' + e.hue + '" selected>Eigene</option>') + '</select></td>' +
       '<td><button class="icon danger" data-act="emp-del" data-id="' + e.id + '">Löschen</button></td></tr>';
   }
-  html += '<tr><td><input type="text" id="newEmpName" placeholder="Name"></td><td><select id="newEmpGroup">' + Object.entries(GROUPS).map(([k,v]) => '<option value="' + k + '">' + v + '</option>').join('') + '</select></td>' +
+  html += '<tr><td><input type="text" id="newEmpName" placeholder="Name"></td><td><select id="newEmpGroup">' + Object.keys(GROUPS).map(k => '<option value="' + k + '">' + esc(groupLabel(k)) + '</option>').join('') + '</select></td>' +
     '<td><input type="number" min="0" step="0.5" id="newEmpPensum" placeholder="–"></td><td><label><input type="checkbox" id="newEmpHours" checked> anzeigen</label></td><td class="muted small">automatisch</td><td><button class="primary" data-act="emp-add">Hinzufügen</button></td></tr>';
   html += '</tbody></table></div><p class="muted small">«Stunden anzeigen»: Für Personen ohne Häkchen werden in der Personalübersicht, in der Übersicht und im Excel keine Stunden ausgewiesen.</p></div>';
   // Schichtzeiten
-  html += '<div class="card"><h2>Schichtzeiten</h2><div class="form">' +
-    '<label>Abzählen von<input type="time" value="' + esc(S.countStart) + '" data-act="set-countStart"></label>' +
-    '<label>Abzählen bis<input type="time" value="' + esc(S.countEnd) + '" data-act="set-countEnd"></label>' +
-    '<label>Fahren ab<input type="time" value="' + esc(S.soloStart) + '" data-act="set-soloStart"></label>' +
-    '<label>Fahren ca. bis (ohne Tour)<input type="time" value="' + esc(S.driveEnd) + '" data-act="set-driveEnd"></label></div>' +
-    '<p class="muted small">Fahren ist «bis fertig»: Das tatsächliche Ende wird pro Tag beim Eintrag erfasst. Bis dahin rechnet die App mit dem ungefähren Ende der gewählten Tour, sonst mit «Fahren ca. bis».</p>' +
+  html += '<div class="card"><h2>Schichten und Bezeichnungen</h2>' +
+    '<p class="muted small">Jede Abteilung hat zwei Schichtarten: Schichtart 1 mit festen Zeiten und einer Anzahl Plätze pro Wochentag, Schichtart 2 mit offenem Ende und einer Auswahl (z.B. Tour oder Bereich). Die Namen gelten nur für die Abteilung «' + esc(deptName()) + '».</p>' +
+    '<div class="form">' +
+    '<label>Name Schichtart 1<input type="text" value="' + esc(S.names.shift1) + '" data-act="set-name" data-key="shift1"></label>' +
+    '<label>Name Schichtart 2<input type="text" value="' + esc(S.names.shift2) + '" data-act="set-name" data-key="shift2"></label>' +
+    '<label>Name der Auswahl bei Schichtart 2<input type="text" value="' + esc(S.names.tour) + '" data-act="set-name" data-key="tour"></label>' +
+    '<label>Name der festen Gruppe<input type="text" value="' + esc(S.names.group1) + '" data-act="set-name" data-key="group1"></label></div>' +
+    '<h3>Schichtzeiten</h3><div class="form">' +
+    '<label>' + esc(N1()) + ' von<input type="time" value="' + esc(S.countStart) + '" data-act="set-countStart"></label>' +
+    '<label>' + esc(N1()) + ' bis<input type="time" value="' + esc(S.countEnd) + '" data-act="set-countEnd"></label>' +
+    '<label>' + esc(N2()) + ' ab<input type="time" value="' + esc(S.soloStart) + '" data-act="set-soloStart"></label>' +
+    '<label>' + esc(N2()) + ' ca. bis (ohne ' + esc(NT()) + ')<input type="time" value="' + esc(S.driveEnd) + '" data-act="set-driveEnd"></label></div>' +
+    '<p class="muted small">' + esc(N2()) + ' ist «bis fertig»: Das tatsächliche Ende wird pro Tag beim Eintrag erfasst. Bis dahin rechnet die App mit dem ungefähren Ende der gewählten Auswahl, sonst mit «' + esc(N2()) + ' ca. bis».</p>' +
     '<h3>Kürzel im Monatsplan (Übersicht)</h3><div class="form">' +
-    [['count','Abzählen'],['drive','Fahren'],['frei','Frei'],['krank','Krank'],['ferien','Ferien'],['andere','Andere']].map(([k,l]) => '<label>' + l + '<input type="text" maxlength="3" class="code" value="' + esc(S.codes[k]) + '" data-act="set-code" data-key="' + k + '"></label>').join('') + '</div>' +
-    '<h3>Abzähl-Plätze pro Wochentag</h3><div class="wdgrid">' +
+    [['count',esc(N1())],['drive',esc(N2())],['frei','Frei'],['krank','Krank'],['ferien','Ferien'],['andere','Andere']].map(([k,l]) => '<label>' + l + '<input type="text" maxlength="3" class="code" value="' + esc(S.codes[k]) + '" data-act="set-code" data-key="' + k + '"></label>').join('') + '</div>' +
+    '<h3>Plätze «' + esc(N1()) + '» pro Wochentag</h3><div class="wdgrid">' +
     WD.map((w,i) => '<label>' + w + '<input type="number" min="0" max="10" value="' + S.countSlots[i] + '" data-act="set-slots" data-idx="' + i + '"></label>').join('') +
     '</div></div>';
-  // Touren (nur zur Information beim Fahren)
-  html += '<div class="card"><h2>Touren</h2><p class="muted small">Die Touren erscheinen beim Fahren-Eintrag als Auswahl, damit die Person sieht, welche Tour sie fährt.</p><div class="table-wrap"><table class="settings"><thead><tr><th>Name</th><th>Ungefähres Ende</th><th></th></tr></thead><tbody>';
+  // Auswahl bei Schichtart 2 (z.B. Touren)
+  html += '<div class="card"><h2>' + esc(NT()) + ' (Auswahl bei ' + esc(N2()) + ')</h2><p class="muted small">Diese Einträge erscheinen bei «' + esc(N2()) + '» als Auswahl, damit die Person sieht, wo sie eingeteilt ist. Das ungefähre Ende gilt, solange kein tatsächliches Ende eingetragen ist.</p><div class="table-wrap"><table class="settings"><thead><tr><th>Name</th><th>Ungefähres Ende</th><th></th></tr></thead><tbody>';
   for(const t of state.tours){
     html += '<tr><td><input type="text" value="' + esc(t.name) + '" data-act="tour-name" data-id="' + t.id + '"></td>' +
       '<td><input type="time" value="' + esc(t.approxEnd) + '" data-act="tour-end" data-id="' + t.id + '"></td>' +
       '<td><button class="icon danger" data-act="tour-del" data-id="' + t.id + '">Löschen</button></td></tr>';
   }
-  html += '<tr><td><input type="text" id="newTourName" placeholder="Name der Tour"></td><td><input type="time" id="newTourEnd" value="12:00"></td><td><button class="primary" data-act="tour-add">Hinzufügen</button></td></tr>';
+  html += '<tr><td><input type="text" id="newTourName" placeholder="Name"></td><td><input type="time" id="newTourEnd" value="12:00"></td><td><button class="primary" data-act="tour-add">Hinzufügen</button></td></tr>';
   html += '</tbody></table></div></div>';
   // Online-Synchronisation
   html += '<div class="card"><h2>Online-Synchronisation</h2>' +
@@ -859,23 +924,26 @@ function renderSettings(){
     '<button data-act="sync-test">Verbindung testen</button></div>' +
     '<p class="small" id="syncStatusText">' + esc(syncStatusText()) + '</p></div>';
   // Daten
-  html += '<div class="card"><h2>Daten</h2><p class="small muted">Alle Daten werden nur in diesem Browser gespeichert (localStorage). Bitte regelmässig eine Sicherung als JSON-Datei exportieren.</p>' +
-    '<div class="actions"><button class="primary" data-act="export">Sicherung exportieren (JSON)</button><button data-act="import">Sicherung importieren (JSON)</button><button class="danger" data-act="reset">Alle Daten zurücksetzen</button></div></div>';
+  html += '<div class="card"><h2>Daten</h2><p class="small muted">Die Sicherung enthält alle Abteilungen. Ohne Online-Synchronisation liegen die Daten nur in diesem Browser – bitte regelmässig eine Sicherung als JSON-Datei exportieren.</p>' +
+    '<div class="actions"><button class="primary" data-act="export">Sicherung exportieren (JSON)</button><button data-act="import">Sicherung importieren (JSON)</button><button class="danger" data-act="reset">Abteilung «' + esc(deptName()) + '» zurücksetzen</button></div></div>';
   return html;
 }
 
 /* ---------- Rendern ---------- */
 function render(){
-  const app = document.getElementById('app');
+  const root = document.getElementById('app');
   const focusKey = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.fk : null;
-  app.innerHTML = view === 'week' ? renderWeek() : view === 'plan' ? renderPlan() : view === 'staff' ? renderStaff() : view === 'absences' ? renderAbsences() : renderSettings();
+  state = curDept().state;
+  document.getElementById('depts').innerHTML = store.departments.map(d => '<button class="dept' + (d.id === store.current ? ' active' : '') + '" data-dept="' + d.id + '">' + esc(d.name) + '</button>').join('');
+  document.title = 'Einsatzplan ' + deptName();
+  root.innerHTML = view === 'week' ? renderWeek() : view === 'plan' ? renderPlan() : view === 'staff' ? renderStaff() : view === 'absences' ? renderAbsences() : renderSettings();
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  if(focusKey){ const el = app.querySelector('[data-fk="' + focusKey + '"]'); if(el) el.focus(); }
+  if(focusKey){ const el = root.querySelector('[data-fk="' + focusKey + '"]'); if(el) el.focus(); }
 }
 function applyTheme(){
   const root = document.documentElement;
-  if(state.theme === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', state.theme);
-  document.getElementById('themeBtn').textContent = state.theme === 'auto' ? '🌓 Auto' : state.theme === 'light' ? '☀️ Hell' : '🌙 Dunkel';
+  if(store.theme === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', store.theme);
+  document.getElementById('themeBtn').textContent = store.theme === 'auto' ? '🌓 Auto' : store.theme === 'light' ? '☀️ Hell' : '🌙 Dunkel';
 }
 function commit(rerender = true){ save(); if(rerender) render(); }
 
@@ -903,7 +971,7 @@ function removeEmployeeEverywhere(id){
   state.employees = state.employees.filter(e => e.id !== id);
 }
 function exportJSON(){
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(store, null, 2)], {type:'application/json'});
   downloadBlob(blob, 'einsatzplan-sicherung-' + toISO(new Date()) + '.json');
 }
 function importJSON(file){
@@ -911,9 +979,9 @@ function importJSON(file){
   reader.onload = () => {
     try{
       const obj = JSON.parse(reader.result);
-      if(!obj || typeof obj !== 'object' || !Array.isArray(obj.employees) || !obj.settings) throw new Error('Format');
-      if(!confirm('Die Sicherung «' + file.name + '» wird importiert und ersetzt alle aktuellen Daten in diesem Browser.\n\nFortfahren?')) return;
-      state = normalize(obj);
+      if(!obj || typeof obj !== 'object' || !(Array.isArray(obj.departments) || (Array.isArray(obj.employees) && obj.settings))) throw new Error('Format');
+      if(!confirm('Die Sicherung «' + file.name + '» wird importiert und ersetzt alle aktuellen Daten (alle Abteilungen) in diesem Browser.\n\nFortfahren?')) return;
+      store = normalizeStore(obj); state = curDept().state;
       applyTheme();
       commit();
       alert('Sicherung erfolgreich importiert.');
@@ -921,6 +989,7 @@ function importJSON(file){
   };
   reader.readAsText(file);
 }
+function safeName(s){ return String(s).replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/Ä/g,'Ae').replace(/Ö/g,'Oe').replace(/Ü/g,'Ue').replace(/ß/g,'ss').replace(/[^\w-]+/g,'_'); }
 function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = filename; document.body.appendChild(a); a.click();
@@ -1046,16 +1115,16 @@ function buildXlsx(sheets){ // sheets: [{name, rows, widths, freeze, merges}]
 function weekToSheets(start){
   const dates = weekDates(start), S = state.settings, w = isoWeek(start);
   const T = (v, st) => ({v, st});
-  const title = 'Einsatzplan KW ' + w.week + ' (' + fmtDate(start) + ' – ' + fmtDate(addDays(start,6)) + ')';
+  const title = 'Einsatzplan ' + deptName() + ' – KW ' + w.week + ' (' + fmtDate(start) + ' – ' + fmtDate(addDays(start,6)) + ')';
   // Blatt 1: Wochenplan
   const rows = [[T(title, 'title')], [], [T('', 'headL'), ...dates.map(d => T(WD_LONG[wdIdx(d)] + ' ' + fmtShort(d), wdIdx(d) >= 5 ? 'we' : 'head'))]];
   const maxSlots = Math.max(...dates.map(d => slotCount(toISO(d), wdIdx(d))), 0);
   for(let i = 0; i < maxSlots; i++){
-    rows.push([T('Abzählen ' + (i+1) + ' (' + S.countStart + '–' + S.countEnd + ')', 'countL'), ...dates.map(d => { const iso = toISO(d), id = dayRO(iso).count[i]; if(id) return T(empName(id), 'count'); return i < slotCount(iso, wdIdx(d)) ? T('offen', 'open') : T('', 'cell'); })]);
+    rows.push([T(N1() + ' ' + (i+1) + ' (' + S.countStart + '–' + S.countEnd + ')', 'countL'), ...dates.map(d => { const iso = toISO(d), id = dayRO(iso).count[i]; if(id) return T(empName(id), 'count'); return i < slotCount(iso, wdIdx(d)) ? T('offen', 'open') : T('', 'cell'); })]);
   }
   const maxExtra = Math.max(1, ...dates.map(d => (dayRO(toISO(d)).extra || []).length));
   for(let i = 0; i < maxExtra; i++){
-    rows.push([T('Fahren ' + (i+1) + ' (ab ' + S.soloStart + ' bis fertig)', 'driveL'), ...dates.map(d => { const x = (dayRO(toISO(d)).extra || [])[i]; if(!x) return T('', 'cell'); if(!x.empId) return T('offen', 'open'); return T(empName(x.empId) + (x.tourId ? ' – ' + extraLabel(x) : '') + ' – ' + (x.actualEnd || 'ca. ' + extraEnd(x)), 'drive'); })]);
+    rows.push([T(N2() + ' ' + (i+1) + ' (ab ' + S.soloStart + ' bis fertig)', 'driveL'), ...dates.map(d => { const x = (dayRO(toISO(d)).extra || [])[i]; if(!x) return T('', 'cell'); if(!x.empId) return T('offen', 'open'); return T(empName(x.empId) + (x.tourId ? ' – ' + extraLabel(x) : '') + ' – ' + (x.actualEnd || 'ca. ' + extraEnd(x)), 'drive'); })]);
   }
   // Blatt 2: Personal
   const prow = [[T(title, 'title')], [], [T('Name', 'headL'), T('Gruppe', 'head'), T('Pensum h', 'head'), T('Geplant h', 'head'), ...dates.map(d => T(WD[wdIdx(d)] + ' ' + fmtShort(d), wdIdx(d) >= 5 ? 'we' : 'head'))]];
@@ -1068,7 +1137,7 @@ function weekToSheets(start){
       const st = a && as.length ? 'conflict' : a ? a.type : as.length === 2 ? 'both' : as.length ? as[0].kind : 'cell';
       cells.push(T(txt, st));
     }
-    prow.push([T(e.name, 'name'), T(GROUPS[e.group], 'text'), T(e.hours ? (e.pensum ?? '') : '', 'num'), T(e.hours ? Math.round(total/6)/10 : '', 'num'), ...cells]);
+    prow.push([T(e.name, 'name'), T(groupLabel(e.group), 'text'), T(e.hours ? (e.pensum ?? '') : '', 'num'), T(e.hours ? Math.round(total/6)/10 : '', 'num'), ...cells]);
   }
   // Blatt 3: Abwesenheiten der Woche
   const endISO = toISO(dates[6]), startISO = toISO(dates[0]);
@@ -1082,7 +1151,7 @@ function weekToSheets(start){
 }
 function exportXlsx(){
   const w = isoWeek(weekStart);
-  downloadBlob(buildXlsx(weekToSheets(weekStart)), 'Einsatzplan_KW' + pad(w.week) + '_' + w.year + '.xlsx');
+  downloadBlob(buildXlsx(weekToSheets(weekStart)), 'Einsatzplan_' + safeName(deptName()) + '_KW' + pad(w.week) + '_' + w.year + '.xlsx');
 }
 
 /* ---------- Online-Synchronisation (Vercel: /api/plan) ---------- */
@@ -1114,18 +1183,18 @@ function syncStatusText(){
 // Server-Stand übernehmen (lokales Design behalten)
 function applyRemote(j){
   if(!j || !j.data) return;
-  const theme = state.theme;
-  state = normalize(j.data); state.theme = theme;
+  const theme = store.theme;
+  store = normalizeStore(j.data); store.theme = theme; state = curDept().state;
   syncState.rev = j.rev || 0;
   save(false); render();
 }
-async function syncPull(force){
+async function syncPull(force, apply = true){
   if(!sync.enabled || syncState.busy || (syncState.dirty && !force)) return null;
   try{
     const r = await fetch(apiUrl() + (force ? '' : '?rev=' + syncState.rev), {cache:'no-store'});
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    if(!j.unchanged){
+    if(!j.unchanged && apply){
       if(j.data){ if(j.rev !== syncState.rev && !syncState.dirty) applyRemote(j); }
       else syncState.rev = 0;
     }
@@ -1144,7 +1213,7 @@ async function syncPush(){
   if(syncState.busy){ schedulePush(); return; }
   syncState.busy = true; setSyncStatus('busy');
   try{
-    const r = await fetch(apiUrl(), {method:'PUT', headers:{'Content-Type':'application/json', 'x-plan-password': sync.password || ''}, body: JSON.stringify({baseRev: syncState.rev, data: state})});
+    const r = await fetch(apiUrl(), {method:'PUT', headers:{'Content-Type':'application/json', 'x-plan-password': sync.password || ''}, body: JSON.stringify({baseRev: syncState.rev, data: store})});
     if(r.status === 401){ syncState.dirty = false; setSyncStatus('error', 'Passwort falsch – Änderungen werden nicht online gespeichert'); return; }
     if(r.status === 409){
       const j = await r.json(); syncState.dirty = false; syncState.busy = false;
@@ -1163,10 +1232,10 @@ async function syncPush(){
 }
 async function enableSync(){
   sync.enabled = true; saveSyncSettings();
-  const j = await syncPull(true);
+  const hasLocal = store.departments.some(d => Object.keys(d.state.days).length > 0 || d.state.absences.length > 0);
+  const j = await syncPull(true, false);
   if(!j){ sync.enabled = false; saveSyncSettings(); alert('Keine Verbindung zum Server. Bitte Server-Adresse prüfen.'); setSyncStatus('off'); return; }
   if(j.data){
-    const hasLocal = Object.keys(state.days).length > 0 || state.absences.length > 0;
     if(hasLocal && !confirm('Auf dem Server ist bereits ein Plan vorhanden.\n\nOK = Plan vom Server übernehmen (die Daten in diesem Browser werden ersetzt)\nAbbrechen = den Plan aus diesem Browser auf den Server hochladen')){
       syncState.rev = j.rev; schedulePush();
     } else applyRemote(j);
@@ -1180,13 +1249,16 @@ document.addEventListener('visibilitychange', () => { if(document.visibilityStat
 window.addEventListener('online', () => { if(syncState.dirty) syncPush(); else syncPull(false); });
 
 /* ---------- Ereignisse ---------- */
+document.getElementById('depts').addEventListener('click', e => {
+  const b = e.target.closest('button[data-dept]'); if(b) selectDept(b.dataset.dept);
+});
 document.getElementById('nav').addEventListener('click', e => {
   const b = e.target.closest('button[data-view]'); if(!b) return;
   view = b.dataset.view; render(); window.scrollTo(0,0);
 });
 document.getElementById('themeBtn').addEventListener('click', () => {
-  state.theme = state.theme === 'auto' ? 'light' : state.theme === 'light' ? 'dark' : 'auto';
-  applyTheme(); save();
+  store.theme = store.theme === 'auto' ? 'light' : store.theme === 'light' ? 'dark' : 'auto';
+  applyTheme(); save(false);
 });
 document.getElementById('importFile').addEventListener('change', e => {
   const f = e.target.files[0]; if(f) importJSON(f); e.target.value = '';
@@ -1214,7 +1286,7 @@ document.getElementById('app').addEventListener('click', e => {
     case 'addslot': { const d = dayRW(el.dataset.date); const n = slotCount(el.dataset.date, wdIdx(fromISO(el.dataset.date))); d.count.length = n + 1; d.count.fill(null, n); commit(); break; }
     case 'rmslot': { const d = dayRW(el.dataset.date); if(d.count.length && !d.count[d.count.length-1]) d.count.pop(); commit(); break; }
     case 'addextra': { dayRW(el.dataset.date).extra.push({id:uid(), empId:null, tourId:'', vanId:'', actualEnd:''}); commit(); break; }
-    case 'x-del': { const d = dayRW(el.dataset.date), x = d.extra[+el.dataset.idx]; if(!x) break; if(!x.empId || confirm('Fahren-Eintrag von ' + empName(x.empId) + ' entfernen?')){ d.extra.splice(+el.dataset.idx, 1); commit(); } break; }
+    case 'x-del': { const d = dayRW(el.dataset.date), x = d.extra[+el.dataset.idx]; if(!x) break; if(!x.empId || confirm('Eintrag «' + N2() + '» von ' + empName(x.empId) + ' entfernen?')){ d.extra.splice(+el.dataset.idx, 1); commit(); } break; }
     case 'addabs': {
       const empId = document.getElementById('absEmp').value, type = document.getElementById('absType').value;
       const from = document.getElementById('absFrom').value, to = document.getElementById('absTo').value || from, note = document.getElementById('absNote').value.trim();
@@ -1231,10 +1303,10 @@ document.getElementById('app').addEventListener('click', e => {
     }
     case 'emp-del': { const emp = empById(id); if(emp && confirm('«' + emp.name + '» wirklich löschen?\nDie Person wird aus allen Plänen und Abwesenheiten entfernt.')){ removeEmployeeEverywhere(id); commit(); } break; }
     case 'tour-add': {
-      const name = document.getElementById('newTourName').value.trim(); if(!name){ alert('Bitte einen Namen für die Tour eingeben.'); return; }
+      const name = document.getElementById('newTourName').value.trim(); if(!name){ alert('Bitte einen Namen eingeben.'); return; }
       state.tours.push({id:uid(), name, days:[1,1,1,1,1,1,0], approxEnd: document.getElementById('newTourEnd').value || '12:00', vanId:null}); commit(); break;
     }
-    case 'tour-del': { const t = tourById(id); if(t && confirm('Tour «' + t.name + '» wirklich löschen?')){ state.tours = state.tours.filter(x => x.id !== id); for(const iso in state.days){ (state.days[iso].extra || []).forEach(x => { if(x.tourId === id) x.tourId = ''; }); } commit(); } break; }
+    case 'tour-del': { const t = tourById(id); if(t && confirm(NT() + ' «' + t.name + '» wirklich löschen?')){ state.tours = state.tours.filter(x => x.id !== id); for(const iso in state.days){ (state.days[iso].extra || []).forEach(x => { if(x.tourId === id) x.tourId = ''; }); } commit(); } break; }
     case 'export': exportJSON(); break;
     case 'import': document.getElementById('importFile').click(); break;
     case 'sync-on': { sync.url = document.getElementById('syncUrl').value.trim(); sync.password = document.getElementById('syncPw').value; saveSyncSettings(); enableSync(); break; }
@@ -1246,7 +1318,9 @@ document.getElementById('app').addEventListener('click', e => {
       fetch(base + '/api/plan', {cache:'no-store'}).then(async r => { if(!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(); st.textContent = 'Verbindung OK. ' + (j.data ? 'Auf dem Server liegt ein Plan (Stand Nr. ' + j.rev + ').' : 'Auf dem Server liegt noch kein Plan.'); }).catch(e => { st.textContent = 'Keine Verbindung: ' + e.message + '. Stimmt die Server-Adresse? Läuft die Seite auf Vercel, kann das Feld leer bleiben.'; });
       break;
     }
-    case 'reset': if(confirm('Wirklich ALLE Daten (Mitarbeitende, Touren, Pläne, Abwesenheiten) zurücksetzen?\nDies kann nicht rückgängig gemacht werden.') && confirm('Letzte Bestätigung: Alle Daten werden gelöscht' + (sync.enabled ? ' – auch auf dem Server für alle Geräte' : '') + '. Vorher eine Sicherung exportiert?')){ state = normalize(defaultState()); applyTheme(); commit(); } break;
+    case 'reset': if(confirm('Wirklich ALLE Daten der Abteilung «' + deptName() + '» (Mitarbeitende, Pläne, Abwesenheiten, Einstellungen) zurücksetzen?\nDies kann nicht rückgängig gemacht werden.') && confirm('Letzte Bestätigung: Die Daten von «' + deptName() + '» werden gelöscht' + (sync.enabled ? ' – auch auf dem Server für alle Geräte' : '') + '. Vorher eine Sicherung exportiert?')){ curDept().state = normalize(deptDefaultState(deptName())); state = curDept().state; commit(); } break;
+    case 'dept-add': { const name = document.getElementById('newDeptName').value.trim(); if(!name){ alert('Bitte einen Namen für die Abteilung eingeben.'); return; } const id = 'd' + uid(); store.departments.push({id, name, state: normalize(deptDefaultState(name))}); store.current = id; state = curDept().state; commit(); break; }
+    case 'dept-del': { const d = store.departments.find(x => x.id === id); if(!d) break; if(store.departments.length <= 1){ alert('Die letzte Abteilung kann nicht gelöscht werden.'); return; } if(confirm('Abteilung «' + d.name + '» mit allen Mitarbeitenden, Plänen und Abwesenheiten wirklich löschen?') && confirm('Letzte Bestätigung: «' + d.name + '» wird unwiderruflich gelöscht.')){ store.departments = store.departments.filter(x => x.id !== id); if(store.current === id) store.current = store.departments[0].id; state = curDept().state; commit(); } break; }
   }
 });
 
@@ -1274,6 +1348,8 @@ document.getElementById('app').addEventListener('change', e => {
     case 'emp-group': { const emp = empById(id); if(emp) emp.group = val; commit(false); break; }
     case 'emp-hue': { const emp = empById(id); if(emp) emp.hue = Number(val); commit(); break; }
     case 'emp-hours': { const emp = empById(id); if(emp) emp.hours = el.checked; commit(false); break; }
+    case 'dept-name': { const d = store.departments.find(x => x.id === id); if(d){ if(val.trim()) d.name = val.trim(); else el.value = d.name; } commit(); break; }
+    case 'set-name': { const k = el.dataset.key; if(val.trim()) state.settings.names[k] = val.trim().slice(0, 24); else el.value = state.settings.names[k]; commit(); break; }
     case 'set-driveEnd': if(val) state.settings.driveEnd = val; commit(false); break;
     case 'set-soloStart': if(val) state.settings.soloStart = val; commit(false); break;
     case 'sync-field': break;

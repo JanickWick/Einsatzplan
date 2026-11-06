@@ -1,6 +1,6 @@
-# Einsatzplan Spedition
+# Einsatzplan
 
-Einfache Web-App für den Personal- und Einsatzplan der Spedition (Bäckerei).
+Einfache Web-App für den Personal- und Einsatzplan der Bäckerei mit getrennten Bereichen pro Abteilung (Spedition, Bäckerei, Traiteur, Konditorei, weitere nach Bedarf).
 Läuft ohne Installation im Browser – alles steckt in der einzelnen Datei **`index.html`**.
 
 **Online-Adresse (GitHub Pages):** https://janickwick.github.io/Einsatzplan/
@@ -42,6 +42,10 @@ Mit der Online-Synchronisation sehen alle Geräte denselben Plan. Dafür läuft 
 3. Auf jedem weiteren Gerät dasselbe tun. Lesen geht ohne Passwort, Speichern nur mit.
 
 Der Server-Teil liegt in `api/plan.js`. Jeder Speichervorgang legt eine neue Version an, die letzten 30 bleiben als Verlauf erhalten. Speichern zwei Personen gleichzeitig, gewinnt die erste; die zweite erhält den neuen Stand und einen Hinweis.
+
+## Abteilungen
+
+Oben in der App wechselt man per Reiter zwischen den Abteilungen. Jede Abteilung hat eigene Mitarbeitende, Schichten, Pläne, Abwesenheiten und Einstellungen. In den Einstellungen lassen sich Abteilungen hinzufügen, umbenennen und löschen. Da die Schichtarten pro Abteilung anders heissen, sind die Namen einstellbar: Schichtart 1 hat feste Zeiten und Plätze pro Wochentag (bei der Spedition «Abzählen»), Schichtart 2 hat ein offenes Ende und eine Auswahl (bei der Spedition «Fahren» mit «Tour»). Sicherung und Online-Synchronisation umfassen immer alle Abteilungen.
 
 ## Funktionen
 
